@@ -241,6 +241,12 @@ async function draw(t = null) {
 // The line holding the underlined phrase shouts in a second colour. In reels each line punches in.
 function shout(W, H, t, f) {
   const lines = (() => { ctx.font = f.css.replace('{s}', 100); return wrap(state.text.toUpperCase(), 520); })().filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {   // a tiny word alone on a line would be stretched huge: join it to a neighbour
+    if (lines.length > 1 && lines[i].replace(/[^A-Z0-9]/gi, '').length <= 3) {
+      const j = i < lines.length - 1 ? i + 1 : i - 1;
+      lines.splice(Math.min(i, j), 2, i < j ? `${lines[i]} ${lines[j]}` : `${lines[j]} ${lines[i]}`);
+    }
+  }
   if (!lines.length) { boxes.text = { x: W * 0.3, y: state.ty * H, w: W * 0.4, h: 80 }; return; }
   const cap = ctx.measureText('H').actualBoundingBoxAscent / 100 || 0.72;
   const width = W * 0.9 * Math.min(1, Math.max(0.4, state.size / 110));
