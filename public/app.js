@@ -33,7 +33,29 @@ function defaults() {
     stickers: [], credit: '', creditOn: true, music: '',
   };
 }
-let mood = '';                  // filter for quotes, paintings and photos
+let mood = '';
+// each mood has a Sugar Valley friend as its face, and its own soft colour (same colours as the mood calendar)
+const MOOD_FACE = {
+  hopeful: ['su-tutti-frutti-hopeful', '#F6E2BE'], heartbroken: ['su-chippie-the-cookie-worried', '#DDE2EE'],
+  grateful: ['su-cocoa-the-brownie-warm', '#F5DCD6'], 'in-love': ['su-butterscotch-belle-warm', '#F5D6E0'],
+  tired: ['su-melty-the-ice-cream-sandwich-calm', '#E4E1EE'], brave: ['su-crumbles-the-biscotti-resolute', '#F2D9CC'],
+  wanderlust: ['su-glazy-the-doughnut-spinning', '#D6EBEC'], 'letting-go': ['su-crepe-suzette-red-relieved', '#E1ECDA'],
+  growing: ['su-fudgy-mcsquares-eureka', '#DCEAD3'], friends: ['su-senor-churro-handshake', '#EEDDF0'],
+};
+function moodButton(key, label, big) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = big ? 'mood-card' : 'mood-chip'; b.dataset.mood = key;
+  const face = MOOD_FACE[key];
+  if (face) {
+    b.classList.add(`mc-${key}`);
+    const img = document.createElement('img');
+    img.src = `assets/sticker/t/${face[0]}.webp`; img.alt = ''; img.decoding = 'async'; img.width = big ? 84 : 30; img.height = big ? 84 : 30;
+    b.append(img);
+  }
+  const span = document.createElement('span'); span.textContent = label;
+  b.append(span);
+  return b;
+}                  // filter for quotes, paintings and photos
 let qSrc = 'all';
 
 // ---------- images ----------
@@ -88,6 +110,7 @@ async function draw(t = null) {
   const zoom = t === null ? 1 : 1 + 0.08 * Math.min(1, t / 8);
 
   // background
+  boxes.art = null;
   ctx.fillStyle = state.bg.color || PAPER_TINT;
   ctx.fillRect(0, 0, W, H);
   const src = isPaper(state.bg) || state.bg.kind === 'upload' ? null : bgSrc(state.bg);
@@ -98,9 +121,12 @@ async function draw(t = null) {
     if (state.bg.kind === 'simple' && state.bg.id) {
       // same layout as the leyzays simple posts: 56% wide at most, bottom edge at 80% of the height
       const art = await load(`assets/sticker/${state.bg.id}.webp`);
-      const k = Math.min(W * 0.56 / art.width, H * 0.36 / art.height) * zoom;
+      const k = Math.min(W * 0.56 / art.width, H * 0.36 / art.height) * zoom * (state.bg.as ?? 1);
       const w = art.width * k, h = art.height * k;
-      ctx.drawImage(art, (W - w) / 2, H * 0.80 - h, w, h);
+      const ax = (state.bg.ax ?? 0.5) * W, ay = (state.bg.ay ?? 0.80) * H;   // centre-x, bottom edge
+      ctx.drawImage(art, ax - w / 2, ay - h, w, h);
+      boxes.art = { x: ax - w / 2, y: ay - h, w, h };
+      if (selected === 'art' && t === null) { ctx.setLineDash([10, 8]); ctx.strokeStyle = '#B5737C'; ctx.lineWidth = 3; ctx.strokeRect(ax - w / 2 - 6, ay - h - 6, w + 12, h + 12); ctx.setLineDash([]); }
     }
   } catch { /* keep the paper colour */ }
 
@@ -241,7 +267,9 @@ function hit(p) {
     if (Math.abs(rx) <= s._w / 2 + 10 && Math.abs(ry) <= s._h / 2 + 10) return i;
   }
   const b = boxes.text;
-  if (b && p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) return 'text';
+  if (b && state.text.trim() && p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) return 'text';
+  const a = boxes.art;
+  if (a && p.x >= a.x && p.x <= a.x + a.w && p.y >= a.y && p.y <= a.y + a.h) return 'art';
   return null;
 }
 let drag = null;
@@ -251,7 +279,9 @@ canvas.addEventListener('pointerdown', (e) => {
   syncSelTools();
   if (selected !== null) {
     const [W, H] = FORMATS[state.format];
-    const o = selected === 'text' ? { x: state.tx * W, y: state.ty * H } : { x: state.stickers[selected].x * W, y: state.stickers[selected].y * H };
+    const o = selected === 'text' ? { x: state.tx * W, y: state.ty * H }
+      : selected === 'art' ? { x: (state.bg.ax ?? 0.5) * W, y: (state.bg.ay ?? 0.80) * H }
+        : { x: state.stickers[selected].x * W, y: state.stickers[selected].y * H };
     drag = { dx: p.x - o.x, dy: p.y - o.y };
     canvas.setPointerCapture(e.pointerId);
   }
@@ -262,23 +292,44 @@ canvas.addEventListener('pointermove', (e) => {
   const [W, H] = FORMATS[state.format];
   const p = toCanvas(e);
   const x = Math.min(1, Math.max(0, (p.x - drag.dx) / W)), y = Math.min(1, Math.max(0, (p.y - drag.dy) / H));
-  if (selected === 'text') { state.tx = x; state.ty = y; } else { state.stickers[selected].x = x; state.stickers[selected].y = y; }
+  if (selected === 'text') { state.tx = x; state.ty = y; } else if (selected === 'art') { state.bg.ax = x; state.bg.ay = Math.max(0.15, y); } else { state.stickers[selected].x = x; state.stickers[selected].y = y; }
   redraw();
 });
 canvas.addEventListener('pointerup', () => { drag = null; });
 
 function syncSelTools() {
-  const isSticker = typeof selected === 'number';
-  $('#sel-tools').hidden = !isSticker;
-  if (isSticker) {
-    $('#sel-size').value = state.stickers[selected].scale;
-    $('#sel-rot').value = state.stickers[selected].rot;
-  }
+  const kind = typeof selected === 'number' ? 'sticker' : selected;   // 'sticker' | 'text' | 'art' | null
+  const box = $('#sel-tools');
+  box.hidden = !kind;
+  if (!kind) return;
+  const size = $('#sel-size'), rot = $('#sel-rot');
+  rot.closest('label').hidden = kind !== 'sticker';
+  $('#sel-front').hidden = kind !== 'sticker';
+  const label = kind === 'text' ? 'Remove the words' : kind === 'art' ? 'Remove the watercolour' : 'Remove sticker';
+  $('#sel-del').title = label; $('#sel-del').setAttribute('aria-label', label);
+  if (kind === 'sticker') { size.min = 0.2; size.max = 3; size.step = 0.01; size.value = state.stickers[selected].scale; rot.value = state.stickers[selected].rot; }
+  if (kind === 'text') { size.min = 40; size.max = 140; size.step = 1; size.value = state.size; }
+  if (kind === 'art') { size.min = 0.4; size.max = 1.8; size.step = 0.01; size.value = state.bg.as ?? 1; }
 }
-$('#sel-size').addEventListener('input', (e) => { state.stickers[selected].scale = +e.target.value; redraw(); });
+$('#sel-size').addEventListener('input', (e) => {
+  const v = +e.target.value;
+  if (selected === 'text') { state.size = v; $('#size').value = v; } else if (selected === 'art') state.bg.as = v; else state.stickers[selected].scale = v;
+  redraw();
+});
 $('#sel-rot').addEventListener('input', (e) => { state.stickers[selected].rot = +e.target.value; redraw(); });
-$('#sel-del').addEventListener('click', () => { state.stickers.splice(selected, 1); selected = null; syncSelTools(); redraw(); });
+function removeSelected() {
+  if (selected === null) return;
+  if (selected === 'text') { state.text = ''; state.underline = ''; state.credit = ''; bindWords(); }
+  else if (selected === 'art') setBg({ kind: 'colors', id: '', color: state.bg.color });
+  else state.stickers.splice(selected, 1);
+  selected = null; syncSelTools(); redraw();
+}
+$('#sel-del').addEventListener('click', removeSelected);
 $('#sel-front').addEventListener('click', () => { const [s] = state.stickers.splice(selected, 1); state.stickers.push(s); selected = state.stickers.length - 1; redraw(); });
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selected !== null && !e.target.closest('input, textarea, select')) { e.preventDefault(); removeSelected(); }
+  if (e.key === 'Escape' && selected !== null) { selected = null; syncSelTools(); redraw(); }
+});
 
 // ---------- panels ----------
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
@@ -317,7 +368,7 @@ function pastelRow(grid, kind) {
     b.setAttribute('aria-pressed', isPaper(state.bg) && state.bg.color === c);
     const sw = document.createElement('span'); sw.className = 'swatch-tile'; sw.style.background = c;
     b.append(sw);
-    b.addEventListener('click', () => setBg({ kind: kind === 'simple' && state.bg.kind === 'simple' ? 'simple' : 'colors', id: state.bg.kind === 'simple' ? state.bg.id : '', color: c }));
+    b.addEventListener('click', () => setBg(kind === 'simple' && state.bg.kind === 'simple' ? { ...state.bg, color: c } : { kind: 'colors', id: '', color: c }));
     grid.append(b);
   }
 }
@@ -337,7 +388,7 @@ function renderBgGrid() {
       const sw = document.createElement('span'); sw.className = 'swatch-tile'; sw.style.background = paper;
       const img = document.createElement('img'); img.loading = 'lazy'; img.decoding = 'async'; img.alt = item.theme || 'watercolour'; img.src = `assets/sticker/t/${item.id}.webp`;
       b.append(sw, img);
-      b.addEventListener('click', () => setBg({ kind: 'simple', id: item.id, color: paper }));
+      b.addEventListener('click', () => setBg({ kind: 'simple', id: item.id, color: paper }));   // fresh position and size
       return b;
     });
     return;
@@ -432,9 +483,8 @@ function renderMoods() {
   const el = $('#moods');
   el.replaceChildren();
   for (const [key, label] of [['', 'Any'], ...Object.entries(catalog.moods)]) {
-    const b = document.createElement('button');
-    b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', mood === key);
-    b.textContent = label;
+    const b = moodButton(key, label, false);
+    b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', mood === key);
     b.addEventListener('click', () => { mood = key; renderMoods(); renderQuotes(); renderBgGrid(); renderStickers(); renderMusic(); });
     el.append(b);
   }
@@ -469,13 +519,14 @@ function renderMonth() {
   }
 }
 function showWelcome() {
+  const h = new Date().getHours();
+  $('#welcome-hi').textContent = h < 5 ? 'Still up?' : h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
   document.body.classList.add('welcoming');
   $('#welcome').hidden = false;
   const el = $('#welcome-moods');
   el.replaceChildren();
   for (const [key, label] of Object.entries(catalog.moods)) {
-    const b = document.createElement('button');
-    b.type = 'button'; b.textContent = label;
+    const b = moodButton(key, label, true);
     b.addEventListener('click', () => {
       const log = moodLog(); log[today()] = key;
       try { localStorage.setItem('overleyz-moods', JSON.stringify(log)); } catch { /* private mode */ }

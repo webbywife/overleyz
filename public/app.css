@@ -78,7 +78,8 @@ textarea, input[type=text], input[type=search], select { display: block; width: 
 .moods-q { font: 1.6rem/1.1 Nanum, cursive; margin: 0 0 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .chips button { font: inherit; font-size: .95rem; border: 1.5px solid var(--mist-deep); background: var(--mist); color: var(--plum); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
-.chips button[aria-checked="true"] { background: var(--rose); border-color: var(--rose); color: #fff; }
+.chips button.mood-chip[aria-checked="true"] { background: var(--mc, var(--mist)); color: #2F2030; }
+.chips button:not(.mood-chip)[aria-checked="true"] { background: var(--rose); border-color: var(--rose); color: #fff; }
 .quotes li button.classic { font-family: Newsreader, Georgia, serif; font-style: italic; }
 
 /* header nav + about page */
@@ -139,7 +140,8 @@ input[type=range], input[type=checkbox], input[type=radio] { accent-color: var(-
 #bg-grid .vignette img { position: absolute; inset: 14% 10% 22%; width: 80%; height: 64%; object-fit: contain; }
 
 .grid .more { grid-column: 1 / -1; height: 1px; }
-.grid img { background: var(--mist-deep); }
+#bg-grid button:not(.vignette) img { background: var(--mist-deep); }
+#bg-grid .vignette img, .grid.stickers img { background: transparent; }
 
 /* music, send, reveal, welcome */
 .music-row { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 460px; }
@@ -172,3 +174,28 @@ dialog .row { margin: 10px 0 0; }
 .welcoming .studio, .welcoming .foot { display: none; }
 .month i { width: 26px; height: 26px; }
 .moods-q .linkish { font: italic .85rem Newsreader, serif; margin-left: 8px; }
+
+/* moods with faces */
+.welcome { background: var(--paper) url(assets/paper-grain.webp); }
+.welcome-hi { font: 1.4rem/1 Nanum, cursive; color: var(--rose); margin: 0; }
+.mood-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; margin: 18px 0 10px; }
+.mood-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px 12px; border: 0; border-radius: 22px 22px 22px 6px; background: var(--mc, var(--mist)); color: #2F2030; cursor: pointer; transition: transform .25s ease, box-shadow .25s ease; box-shadow: 0 10px 18px -16px rgba(47, 32, 48, .6); }
+.mood-card:nth-child(even) { border-radius: 22px 22px 6px 22px; transform: rotate(1.2deg); }
+.mood-card:nth-child(odd) { transform: rotate(-1deg); }
+.mood-card img { width: 84px; height: 84px; object-fit: contain; filter: drop-shadow(0 6px 6px rgba(47, 32, 48, .15)); transition: transform .3s ease; }
+.mood-card span { font: 1.3rem/1.05 Nanum, cursive; }
+.mood-card:hover, .mood-card:focus-visible { transform: translateY(-4px) rotate(0); box-shadow: 0 18px 24px -18px rgba(47, 32, 48, .7); outline: none; }
+.mood-card:hover img, .mood-card:focus-visible img { animation: bob .9s ease-in-out infinite; }
+.mood-card:focus-visible { box-shadow: 0 0 0 3px var(--rose); }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
+.mood-card img { animation: drift 4s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.4s); }
+@keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.mood-chip { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .95rem; border: 0; background: var(--mc, var(--mist)); color: #2F2030; border-radius: 999px; padding: 3px 12px 3px 4px; cursor: pointer; }
+.mood-chip:not(:has(img)) { padding: 6px 14px; }
+.mood-chip img { width: 30px; height: 30px; object-fit: contain; border-radius: 50%; background: rgba(255, 255, 255, .55); }
+.mood-chip[aria-checked="true"] { box-shadow: 0 0 0 2.5px var(--plum); font-weight: 600; }
+.mc-hopeful { --mc: #F6E2BE; } .mc-heartbroken { --mc: #DDE2EE; } .mc-grateful { --mc: #F5DCD6; } .mc-in-love { --mc: #F5D6E0; }
+.mc-tired { --mc: #E4E1EE; } .mc-brave { --mc: #F2D9CC; } .mc-wanderlust { --mc: #D6EBEC; } .mc-letting-go { --mc: #E1ECDA; }
+.mc-growing { --mc: #DCEAD3; } .mc-friends { --mc: #EEDDF0; }
+@media (prefers-reduced-motion: reduce) { .mood-card, .mood-card img, .mood-card:hover img { animation: none !important; transition: none; } }
+.mood-card:nth-child(3n) img { animation-delay: -1.3s; } .mood-card:nth-child(3n+1) img { animation-delay: -2.6s; }
