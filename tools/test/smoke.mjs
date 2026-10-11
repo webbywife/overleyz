@@ -6,7 +6,7 @@ for (const [name, vp] of [['desktop', { width: 1300, height: 1000 }], ['phone', 
   const page = await browser.newPage({ viewport: vp, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => errors.push(name + ': ' + e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(name + ' console: ' + m.text()));
-  await page.goto('http://127.0.0.1:8799/');
+  await page.goto(process.env.BASE || 'http://127.0.0.1:8799/');
   await page.waitForTimeout(1500);
   const sw = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
   console.log(name, 'scrollWidth/innerWidth', sw);
