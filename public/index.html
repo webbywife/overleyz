@@ -49,7 +49,15 @@
   <h1 id="welcome-q">How are you today?</h1>
   <p class="fine">Pick the friend who feels like you right now. We’ll find words, a picture and music to match.</p>
   <div class="mood-cards" id="welcome-moods"></div>
-  <div class="month" id="month" aria-label="Your moods this month"></div>
+  <div class="calendar">
+    <div class="cal-head">
+      <button type="button" class="icon-btn" id="month-prev" aria-label="Previous month">‹</button>
+      <h2 id="month-name"></h2>
+      <button type="button" class="icon-btn" id="month-next" aria-label="Next month">›</button>
+    </div>
+    <div class="month" id="month" aria-label="Your moods this month"></div>
+    <p class="fine" id="month-count"></p>
+  </div>
   <button type="button" class="linkish" id="welcome-skip">Just let me make something</button>
   <p class="fine">Your moods are kept only on this device.</p>
 </section>
@@ -79,7 +87,10 @@
 
 <main class="studio">
   <section class="stage" aria-label="Preview">
-    <canvas id="canvas" width="1080" height="1350" aria-label="Your post preview — drag the text and stickers to move them"></canvas>
+    <div class="polaroid">
+      <canvas id="canvas" width="1080" height="1350" aria-label="Your post preview — drag the text and stickers to move them"></canvas>
+      <p class="polaroid-cap">today’s little note</p>
+    </div>
     <div class="stage-tools" id="sel-tools" hidden>
       <label title="Size"><svg class="ic" aria-hidden="true"><use href="#i-size"/></svg><span class="sr">Size</span> <input type="range" id="sel-size" min="0.2" max="3" step="0.01"></label>
       <label title="Turn" class="turn"><svg class="ic" aria-hidden="true"><use href="#i-turn"/></svg><span class="sr">Turn</span> <input type="range" id="sel-rot" min="-180" max="180" step="1"></label>

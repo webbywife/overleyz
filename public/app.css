@@ -199,3 +199,99 @@ dialog .row { margin: 10px 0 0; }
 .mc-growing { --mc: #DCEAD3; } .mc-friends { --mc: #EEDDF0; }
 @media (prefers-reduced-motion: reduce) { .mood-card, .mood-card img, .mood-card:hover img { animation: none !important; transition: none; } }
 .mood-card:nth-child(3n) img { animation-delay: -1.3s; } .mood-card:nth-child(3n+1) img { animation-delay: -2.6s; }
+
+/* ================= scrapbook ================= */
+:root { --page: #F3ECE3; --dot: rgba(120, 95, 100, .16); --ink-shadow: rgba(47, 32, 48, .22); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #1C1519; --dot: rgba(240, 225, 232, .07); --ink-shadow: rgba(0, 0, 0, .45); } }
+:root[data-theme="dark"] { --page: #1C1519; --dot: rgba(240, 225, 232, .07); --ink-shadow: rgba(0, 0, 0, .45); }
+body {
+  background-color: var(--page);
+  background-image: radial-gradient(var(--dot) 1.2px, transparent 1.3px), url(assets/paper-grain.webp);
+  background-size: 22px 22px, 256px 256px;
+}
+.top, .studio, .foot, .welcome, .reveal-card, .about { position: relative; z-index: 1; }
+
+/* parallax layer */
+.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.scene > * { position: absolute; transform: rotate(var(--r)); will-change: transform; }
+.scrap { height: auto; opacity: .9; filter: drop-shadow(0 6px 6px rgba(47, 32, 48, .12)); }
+.snap { margin: 0; padding: 8px 8px 22px; width: 132px; background: #FFFDF8; box-shadow: 0 12px 18px -12px var(--ink-shadow); }
+.snap img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.snap figcaption { font: 1rem/1 Nanum, cursive; color: #5B4652; text-align: center; margin-top: 6px; }
+@media (max-width: 900px) { .scrap, .snap { opacity: .55; } .snap { width: 96px; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .scene { opacity: .45; } }
+
+/* header: brand on a strip of washi */
+.brand { position: relative; padding: 2px 10px 6px; }
+.brand::before { content: ""; position: absolute; inset: 18% -6px 4% -6px; background: url(assets/sticker/jo-washi-rose.webp) center / 100% 100% no-repeat; z-index: -1; transform: rotate(-2deg); opacity: .85; }
+
+/* taped paper panels */
+.panel, .welcome, .about section, .about .cards article, dialog {
+  background: #FFFDF8 url(assets/paper-grain.webp); color: #2F2030;
+  box-shadow: 0 1px 0 rgba(47, 32, 48, .06), 0 18px 28px -20px var(--ink-shadow);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) :is(.panel, .welcome, .about section, .about .cards article, dialog) { background-color: #2A2128; color: #F3ECEF; } }
+.panel, .welcome { border-radius: 4px; }
+.panel { transform: rotate(.35deg); }
+.panel::before, .panel::after, .welcome::before, .welcome::after, .polaroid::before, .about section::before, .calendar::before {
+  content: ""; position: absolute; width: 110px; height: 30px; background: center / 100% 100% no-repeat; opacity: .92; pointer-events: none;
+}
+.panel::before { top: -12px; left: 22px; background-image: url(assets/sticker/jo-washi-sky.webp); transform: rotate(-6deg); }
+.panel::after { top: -10px; right: 26px; background-image: url(assets/sticker/jo-deco-06.webp); transform: rotate(5deg); }
+.welcome::before { top: -13px; left: 34px; background-image: url(assets/sticker/jo-washi-peach.webp); transform: rotate(-5deg); }
+.welcome::after { top: -11px; right: 40px; background-image: url(assets/sticker/jo-deco-05.webp); transform: rotate(6deg); }
+.about section { position: relative; border-radius: 4px; }
+.about section::before { top: -12px; left: 30px; background-image: url(assets/sticker/jo-washi-lilac.webp); transform: rotate(-4deg); }
+.about section:nth-of-type(even)::before { left: auto; right: 34px; background-image: url(assets/sticker/jo-deco-09.webp); transform: rotate(5deg); }
+.about section.cards::before { display: none; }
+
+/* headings sit on a watercolour brush stroke */
+.moods-q, .welcome h1, .about h2, .about h1, dialog h2, .cal-head h2, .share-cards h2 {
+  background: url(assets/sticker/jo-banners-01.webp) left 60% / 100% 62% no-repeat; display: inline-block; padding: 0 10px;
+}
+.welcome h1 { background-image: url(assets/sticker/jo-banners-05.webp); }
+.about h2 { background-image: url(assets/sticker/jo-banners-02.webp); }
+.cal-head h2 { background-image: url(assets/sticker/jo-banners-06.webp); }
+
+/* the design as a taped polaroid */
+.polaroid { position: relative; background: #FFFDF8; padding: 12px 12px 0; box-shadow: 0 22px 34px -22px var(--ink-shadow); max-width: 100%; display: flex; flex-direction: column; align-items: center; }
+.polaroid::before { top: -14px; left: 50%; margin-left: -60px; width: 120px; height: 32px; background-image: url(assets/sticker/jo-washi-rose.webp); transform: rotate(-3deg); z-index: 2; }
+.polaroid canvas { box-shadow: none; border-radius: 0; max-height: 66vh; }
+.polaroid-cap { margin: 0; padding: 8px 0 12px; font: 1.35rem/1 Nanum, cursive; color: #5B4652; }
+
+/* index-card tabs */
+.tabs { gap: 4px; margin-bottom: 0; padding-left: 6px; }
+.tabs button { border-radius: 12px 12px 0 0; border: 0; padding: 9px 20px 7px; background: #F1E4E7; color: #2F2030; transform: translateY(3px); }
+.tabs button:nth-child(2) { background: #E4EDDF; } .tabs button:nth-child(3) { background: #E1E9F3; }
+.tabs button[aria-selected="true"] { transform: translateY(0); box-shadow: 0 -3px 6px -4px var(--ink-shadow); background: #FFFDF8; color: #2F2030; }
+.tab { border-top: 1.5px dashed #E2D3D8; padding-top: 14px; }
+
+/* round "sticker" buttons, the main one stitched like a badge */
+.action { background: #FFFDF8; box-shadow: 0 6px 10px -8px var(--ink-shadow); }
+.action.primary { box-shadow: inset 0 0 0 4px #2F2030, inset 0 0 0 5.5px rgba(255, 253, 248, .7), 0 10px 16px -10px var(--ink-shadow); }
+.subtabs button, .chips button { box-shadow: 0 3px 5px -4px var(--ink-shadow); }
+.subtabs button:nth-child(odd) { transform: rotate(-.8deg); } .subtabs button:nth-child(even) { transform: rotate(.8deg); }
+
+/* the mood calendar as a little taped card */
+.calendar { position: relative; display: inline-block; margin: 18px auto 6px; padding: 16px 18px 8px; background: #FFFDF8; border: 1px solid #EADDE1; border-radius: 4px; transform: rotate(-1deg); box-shadow: 0 12px 20px -16px var(--ink-shadow); }
+.calendar::before { top: -12px; right: 24px; width: 80px; height: 26px; background-image: url(assets/sticker/jo-washi-sky.webp); transform: rotate(8deg); }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.cal-head h2 { font: 1.7rem/1.1 Nanum, cursive; margin: 0; color: #2F2030; }
+.cal-head .icon-btn { width: 32px; height: 32px; font-size: 1.3rem; line-height: 1; }
+.cal-head .icon-btn[disabled] { opacity: .3; }
+.month { grid-template-columns: repeat(7, 34px); gap: 5px; margin: 0 auto; }
+.month b { font: 600 .72rem Newsreader, serif; color: #8A7480; text-align: center; }
+.month i { width: 34px; height: 34px; }
+.month span.day { width: 34px; height: 34px; border-radius: 50%; background: #F3ECEF; font-size: .78rem; color: #8A7480; display: flex; align-items: center; justify-content: center; }
+.month span.day[data-mood] { background: var(--mc); }
+.month span.day img { width: 30px; height: 30px; object-fit: contain; }
+.month span.today { box-shadow: 0 0 0 2px #B5737C; }
+.month .m-hopeful { --mc: #F6E2BE; } .month .m-heartbroken { --mc: #DDE2EE; } .month .m-grateful { --mc: #F5DCD6; } .month .m-in-love { --mc: #F5D6E0; }
+.month .m-tired { --mc: #E4E1EE; } .month .m-brave { --mc: #F2D9CC; } .month .m-wanderlust { --mc: #D6EBEC; } .month .m-letting-go { --mc: #E1ECDA; }
+.month .m-growing { --mc: #DCEAD3; } .month .m-friends { --mc: #EEDDF0; }
+#month-count { text-align: center; margin: 6px 0 4px; }
+@media (max-width: 420px) { .month { grid-template-columns: repeat(7, 30px); } .month span.day, .month i { width: 30px; height: 30px; } .month span.day img { width: 26px; height: 26px; } }
+@media (prefers-reduced-motion: reduce) { .panel, .calendar, .subtabs button { transform: none !important; } }
+.panel { padding-top: 24px; }
+@media (max-width: 1360px) { .snap { display: none; } }
+.foot { text-shadow: 0 0 6px var(--page), 0 0 2px var(--page); }

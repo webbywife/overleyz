@@ -1,3 +1,4 @@
+import { scene } from './scene.js';
 // overleyz — notes on pictures. Everything happens in the browser: nothing is uploaded or stored on a server.
 const $ = (s) => document.querySelector(s);
 const canvas = $('#canvas');
@@ -504,20 +505,37 @@ $('#surprise').addEventListener('click', surprise);
 // ---------- "How are you today?" — a daily check-in and a mood calendar, kept only on this device ----------
 const today = () => new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD in local time
 function moodLog() { try { return JSON.parse(localStorage.getItem('overleyz-moods') || '{}'); } catch { return {}; } }
+let monthOffset = 0;   // 0 = this month, -1 = last month …
 function renderMonth() {
-  const log = moodLog(), now = new Date(), y = now.getFullYear(), m = now.getMonth();
+  const log = moodLog(), now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const y = first.getFullYear(), m = first.getMonth();
+  $('#month-name').textContent = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  $('#month-next').disabled = monthOffset >= 0;
   const el = $('#month');
   el.replaceChildren();
-  const lead = new Date(y, m, 1).getDay();
-  for (let k = 0; k < lead; k++) el.append(document.createElement('i'));
+  for (const d of ['S', 'M', 'T', 'W', 'T', 'F', 'S']) { const h = document.createElement('b'); h.textContent = d; el.append(h); }
+  for (let k = 0; k < first.getDay(); k++) el.append(document.createElement('i'));
+  let count = 0;
   for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
     const key = new Date(y, m, d).toLocaleDateString('en-CA');
     const dot = document.createElement('span');
-    dot.textContent = d;
-    if (log[key] && catalog.moods[log[key]]) { dot.dataset.mood = log[key]; dot.className = `m-${log[key]}`; dot.title = catalog.moods[log[key]]; }
+    const md = log[key];
+    if (md && catalog.moods[md]) {
+      count++;
+      dot.className = `day m-${md}`; dot.dataset.mood = md; dot.title = `${d} — ${catalog.moods[md]}`;
+      const face = new Image(); face.src = `assets/sticker/t/${MOOD_FACE[md][0]}.webp`; face.alt = catalog.moods[md]; face.decoding = 'async';
+      dot.append(face);
+    } else {
+      dot.className = 'day'; dot.textContent = d;
+    }
+    if (key === today()) dot.classList.add('today');
     el.append(dot);
   }
+  $('#month-count').textContent = count ? `${count} ${count === 1 ? 'day' : 'days'} checked in` : 'No check-ins yet this month';
 }
+$('#month-prev').addEventListener('click', () => { monthOffset--; renderMonth(); });
+$('#month-next').addEventListener('click', () => { if (monthOffset < 0) { monthOffset++; renderMonth(); } });
 function showWelcome() {
   const h = new Date().getHours();
   $('#welcome-hi').textContent = h < 5 ? 'Still up?' : h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
@@ -792,7 +810,7 @@ $('#reset').addEventListener('click', () => { state = defaults(); selected = nul
   catalog = await (await fetch('assets/catalog.json')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
   if (hash) {
-    try { await reveal(decodeNote(hash)); return; } catch { history.replaceState(null, '', location.pathname); }
+    try { await reveal(decodeNote(hash)); scene(catalog.photos); return; } catch { history.replaceState(null, '', location.pathname); }
   }
   if (!state.bg.id && state.bg.kind === 'backgrounds') state.bg.id = catalog.backgrounds.find((b) => b.id.includes('life'))?.id || catalog.backgrounds[0]?.id || '';
   document.querySelector(`input[name=format][value=${state.format}]`).checked = true;
@@ -802,4 +820,5 @@ $('#reset').addEventListener('click', () => { state = defaults(); selected = nul
   try { asked = localStorage.getItem('overleyz-asked') || ''; } catch { /* private mode */ }
   if (asked !== today()) showWelcome();   // once a day
   redraw();
+  (window.requestIdleCallback || setTimeout)(() => scene(catalog.photos));   // scrapbook background, after the studio is ready
 })();
