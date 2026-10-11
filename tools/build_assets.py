@@ -166,6 +166,29 @@ def webfont(src, dest):
     subset.main([str(src), f"--unicodes={UNICODES}", "--flavor=woff2", "--layout-features=*", f"--output-file={dest}"])
 
 
+def music(per_mood=3):
+    """10-second clips of Ley's own leyzays songs (composed by ~/leyzays-brand/sound/compose.py), a few per mood."""
+    import subprocess
+    posts = json.loads((HOME / "leyzays/database/data/posts.json").read_text())
+    media = HOME / "leyzays/storage/app/public/media"
+    picked, out = {}, []
+    for p in posts:
+        m = mood_of(p["theme"])
+        if m and (media / f"{p['slug']}.mp3").exists() and len(picked.setdefault(m, [])) < per_mood:
+            picked[m].append(p)
+    d = OUT / "music"
+    d.mkdir(parents=True, exist_ok=True)
+    for m, ps in picked.items():
+        for p in ps:
+            dest = d / f"{p['slug']}.m4a"
+            if not dest.exists():
+                subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(media / f"{p['slug']}.mp3"), "-t", "10",
+                                "-af", "afade=t=in:d=0.4,afade=t=out:st=8.4:d=1.6", "-c:a", "aac", "-b:a", "96k",
+                                "-map_metadata", "-1", str(dest)], check=True)
+            out.append({"id": p["slug"], "mood": m, "title": p["quote"]})
+    return out
+
+
 def fonts():
     src = {"Kalam-Light.ttf": IGQ / "fonts/Kalam-Light.ttf", "Caveat-VF.ttf": IGQ / "fonts/Caveat-VF.ttf",
            "NanumPenScript-Regular.ttf": HOME / "leyzays-brand/fonts/NanumPenScript-Regular.ttf",
@@ -183,7 +206,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     fonts()
     grain()
-    cat = {"moods": MOODS, "simple": simple(), "backgrounds": backgrounds(), "photos": photos(), "stickers": stickers(),
+    cat = {"moods": MOODS, "music": music(), "simple": simple(), "backgrounds": backgrounds(), "photos": photos(), "stickers": stickers(),
            "quotes": [{"q": q, "t": t, "m": mood_of(t), "by": "leyzays"} for q, t in quotes()]
            + [{"q": q, "m": m, "by": a, "work": w} for m, q, a, w in CLASSICS]}
     (OUT / "catalog.json").write_text(json.dumps(cat, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

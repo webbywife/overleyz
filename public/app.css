@@ -140,3 +140,35 @@ input[type=range], input[type=checkbox], input[type=radio] { accent-color: var(-
 
 .grid .more { grid-column: 1 / -1; height: 1px; }
 .grid img { background: var(--mist-deep); }
+
+/* music, send, reveal, welcome */
+.music-row { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 460px; }
+.music-row select { flex: 1; min-width: 0; margin: 0; font-size: .95rem; }
+.music-row .ic { width: 22px; height: 22px; color: var(--plum-soft); }
+#music-play[aria-pressed="true"] { background: var(--rose); color: #fff; border-color: var(--rose); }
+dialog { border: 0; border-radius: 14px; padding: 18px 20px; max-width: min(440px, calc(100vw - 32px)); background: var(--paper); color: var(--plum); box-shadow: 0 30px 60px -30px rgba(47, 32, 48, .6); }
+dialog::backdrop { background: rgba(47, 32, 48, .35); }
+dialog h2 { font: 1.9rem/1.1 Nanum, cursive; margin: 0 0 6px; }
+dialog .row { margin: 10px 0 0; }
+.warn { color: #9b2c3c; }
+#send-link { margin: 8px 0 0; font-size: .85rem; }
+.revealing .studio .panel, .revealing .top .topnav, .revealing .music-row, .revealing .actions, .revealing .hint, .revealing .stage-tools, .revealing .reel, .revealing .reel-status { display: none !important; }
+.revealing .studio { grid-template-columns: minmax(0, 1fr); max-width: 640px; }
+.reveal-card { max-width: 640px; margin: 4px auto 0; padding: 0 var(--gutter); text-align: center; }
+.reveal-to { font: 2.4rem/1.1 Nanum, cursive; margin: 6px 0 0; }
+.reveal-from { margin: 0 0 10px; font-size: 1rem; }
+.reveal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 12px 0 4px; order: 3; }
+.revealing .reveal-card { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.welcome { max-width: 720px; margin: 10px auto 24px; padding: 22px var(--gutter); text-align: center; background: var(--paper); border-radius: 18px; }
+.welcome h1 { font: 2.8rem/1.05 Nanum, cursive; margin: 0 0 6px; }
+.chips.big { justify-content: center; gap: 10px; margin: 14px 0; }
+.chips.big button { font-size: 1.1rem; padding: 10px 16px; }
+.month { display: grid; grid-template-columns: repeat(7, 26px); gap: 5px; justify-content: center; margin: 14px auto 6px; }
+.month span { width: 26px; height: 26px; border-radius: 50%; background: var(--mist); font-size: .7rem; display: flex; align-items: center; justify-content: center; color: var(--plum-soft); }
+.month span[data-mood] { color: #fff; }
+.month .m-hopeful { background: #E8B56B; } .month .m-heartbroken { background: #8E9BB8; } .month .m-grateful { background: #D99A8F; }
+.month .m-in-love { background: #D46F8A; } .month .m-tired { background: #A9A3C2; } .month .m-brave { background: #C9744D; }
+.month .m-wanderlust { background: #6FA3A8; } .month .m-letting-go { background: #9DB58C; } .month .m-growing { background: #7FA26A; } .month .m-friends { background: #C69BC8; }
+.welcoming .studio, .welcoming .foot { display: none; }
+.month i { width: 26px; height: 26px; }
+.moods-q .linkish { font: italic .85rem Newsreader, serif; margin-left: 8px; }

@@ -6,6 +6,9 @@
 - Pick a mood (hopeful, heartbroken, grateful, in love, tired, brave, wanderlust, letting go, growing, friends) → matching quotes, paintings and photos. **Surprise me** picks a quote and a picture for that mood.
 - Quotes: 454 leyzays notes + public-domain classics (Shakespeare, Austen, the Brontës, Dickinson, Thoreau, Emerson, Gibran, Montgomery, Alcott, King James Bible…) with the credit printed under the words. No movie lines or quotes from living people (copyright, and too many are misattributed).
 - Stickers: Sugar Valley dessert characters (from the Sweetest Lovers story, sorted by the chosen mood), journal cut-outs, seasonal stickers and watercolour still-lifes.
+- Daily check-in “How are you today?” (once a day) → sets mood, a matching quote/picture/music; mood calendar in localStorage only.
+- Send a note: the design is encoded in the link’s #fragment (never reaches the server), validated against the catalog on open, plays as a reveal; “Write one back”.
+- Reels can carry music: 10-second clips of Ley’s own leyzays songs (`assets/music`, from `~/leyzays-brand/sound/compose.py`); Sugar Valley stickers bounce gently.
 - Formats: post 4:5, square, story/reel 9:16. Reels are recorded from the canvas (MP4 on Safari and current Chrome; WebM fallback).
 - Share uses the phone's share sheet (Web Share API) → Instagram, Facebook, Messenger, Viber; otherwise download.
 

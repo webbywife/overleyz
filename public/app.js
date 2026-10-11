@@ -30,7 +30,7 @@ function defaults() {
     bg: { kind: 'colors', id: '', color: PAPERS.blush },
     text: 'Slow is still / moving forward.', underline: 'moving forward',
     font: 'Kalam', size: 72, ink: INKS[0], paper: false, paperOp: 0.9, tx: 0.5, ty: 0.14,
-    stickers: [], credit: '', creditOn: true,
+    stickers: [], credit: '', creditOn: true, music: '',
   };
 }
 let mood = '';                  // filter for quotes, paintings and photos
@@ -174,7 +174,9 @@ async function draw(t = null) {
       const img = await load(`assets/sticker/${s.id}.webp`);
       const base = W * 0.26 / Math.max(img.width, img.height);
       const w = img.width * base * s.scale * pop, h = img.height * base * s.scale * pop;
-      ctx.save(); ctx.translate(s.x * W, s.y * H); ctx.rotate(s.rot * Math.PI / 180);
+      let bob = 0, sway = 0;
+      if (t !== null && s.id.startsWith('su-')) { bob = Math.sin(t * 3.2 + i) * H * 0.008; sway = Math.sin(t * 2.1 + i) * 3; }   // Sugar Valley friends bounce a little
+      ctx.save(); ctx.translate(s.x * W, s.y * H + bob); ctx.rotate((s.rot + sway) * Math.PI / 180);
       ctx.drawImage(img, -w / 2, -h / 2, w, h);
       if (selected === i && t === null) { ctx.setLineDash([10, 8]); ctx.strokeStyle = '#B5737C'; ctx.lineWidth = 3; ctx.strokeRect(-w / 2 - 6, -h / 2 - 6, w + 12, h + 12); }
       ctx.restore();
@@ -433,18 +435,66 @@ function renderMoods() {
     const b = document.createElement('button');
     b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', mood === key);
     b.textContent = label;
-    b.addEventListener('click', () => { mood = key; renderMoods(); renderQuotes(); renderBgGrid(); renderStickers(); });
+    b.addEventListener('click', () => { mood = key; renderMoods(); renderQuotes(); renderBgGrid(); renderStickers(); renderMusic(); });
     el.append(b);
   }
 }
-$('#surprise').addEventListener('click', () => {
+function surprise() {
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const tunes = catalog.music.filter((m) => m.mood === mood);
+  if (tunes.length) { state.music = pick(tunes).id; renderMusic(); }
   const qs = quoteMatches('');
   if (qs.length) useQuote(pick(qs));
   const pool = ['simple', 'backgrounds', 'photos'].flatMap((k) => catalog[k].filter((x) => !mood || x.mood === mood).map((x) => [k, x]));
   if (pool.length) { const [k, x] = pick(pool); setBg({ kind: k, id: x.id, color: k === 'simple' ? pick(Object.values(PAPERS)) : PAPER_TINT }); }
   else redraw();
-});
+}
+$('#surprise').addEventListener('click', surprise);
+
+// ---------- "How are you today?" — a daily check-in and a mood calendar, kept only on this device ----------
+const today = () => new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD in local time
+function moodLog() { try { return JSON.parse(localStorage.getItem('overleyz-moods') || '{}'); } catch { return {}; } }
+function renderMonth() {
+  const log = moodLog(), now = new Date(), y = now.getFullYear(), m = now.getMonth();
+  const el = $('#month');
+  el.replaceChildren();
+  const lead = new Date(y, m, 1).getDay();
+  for (let k = 0; k < lead; k++) el.append(document.createElement('i'));
+  for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
+    const key = new Date(y, m, d).toLocaleDateString('en-CA');
+    const dot = document.createElement('span');
+    dot.textContent = d;
+    if (log[key] && catalog.moods[log[key]]) { dot.dataset.mood = log[key]; dot.className = `m-${log[key]}`; dot.title = catalog.moods[log[key]]; }
+    el.append(dot);
+  }
+}
+function showWelcome() {
+  document.body.classList.add('welcoming');
+  $('#welcome').hidden = false;
+  const el = $('#welcome-moods');
+  el.replaceChildren();
+  for (const [key, label] of Object.entries(catalog.moods)) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = label;
+    b.addEventListener('click', () => {
+      const log = moodLog(); log[today()] = key;
+      try { localStorage.setItem('overleyz-moods', JSON.stringify(log)); } catch { /* private mode */ }
+      mood = key; renderMoods(); renderQuotes(); renderStickers(); renderMusic();
+      surprise();
+      closeWelcome();
+    });
+    el.append(b);
+  }
+  renderMonth();
+}
+function closeWelcome() {
+  try { localStorage.setItem('overleyz-asked', today()); } catch { /* private mode */ }
+  document.body.classList.remove('welcoming');
+  $('#welcome').hidden = true;
+  redraw();
+}
+$('#welcome-skip').addEventListener('click', closeWelcome);
+$('#open-checkin').addEventListener('click', showWelcome);
 
 $('#q-search').addEventListener('input', (e) => renderQuotes(e.target.value));
 
@@ -500,25 +550,67 @@ $('#share-image').addEventListener('click', async () => share(await finalImage()
 $('#save-image').addEventListener('click', async () => download(await finalImage(), 'overleyz.jpg'));
 
 let reelBlob = null, reelType = 'video/mp4';
-function pickMime() {
-  for (const m of ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm']) {
-    if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
-  }
-  return null;
+function pickMime(withAudio) {
+  const list = withAudio
+    ? ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm']
+    : ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+  return list.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || null;
 }
+
+// ---------- music (Ley's own leyzays songs, 10-second clips; loaded only when chosen) ----------
+let audioCtx = null, previewSrc = null;
+const songCache = new Map();
+async function song(id) {
+  audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+  if (!songCache.has(id)) songCache.set(id, fetch(`assets/music/${id}.m4a`).then((r) => r.arrayBuffer()).then((b) => audioCtx.decodeAudioData(b)));
+  return songCache.get(id);
+}
+function stopPreview() { try { previewSrc?.stop(); } catch { /* already stopped */ } previewSrc = null; $('#music-play').setAttribute('aria-pressed', 'false'); }
+function renderMusic() {
+  const sel = $('#music');
+  const keep = state.music || '';
+  sel.replaceChildren(new Option('No music', ''));
+  const list = [...catalog.music].sort((a, b) => (b.mood === mood) - (a.mood === mood));
+  for (const m of list) sel.append(new Option(`♪ ${catalog.moods[m.mood]} — ${m.title.slice(0, 38)}${m.title.length > 38 ? '…' : ''}`, m.id));
+  sel.value = list.some((m) => m.id === keep) ? keep : '';
+}
+$('#music').addEventListener('change', (e) => { state.music = e.target.value; stopPreview(); save(); });
+$('#music-play').addEventListener('click', async () => {
+  if (previewSrc) { stopPreview(); return; }
+  if (!state.music) return;
+  const buf = await song(state.music);
+  await audioCtx.resume();
+  previewSrc = audioCtx.createBufferSource(); previewSrc.buffer = buf; previewSrc.connect(audioCtx.destination);
+  previewSrc.onended = stopPreview; previewSrc.start();
+  $('#music-play').setAttribute('aria-pressed', 'true');
+});
+
 $('#make-reel').addEventListener('click', async () => {
-  const mime = pickMime();
+  stopPreview();
   const status = $('#reel-status');
+  const withAudio = !!state.music;
+  const mime = pickMime(withAudio);
   if (!mime) { status.textContent = 'This browser can’t record video. Try Chrome or Safari.'; return; }
   const btn = $('#make-reel');
   btn.disabled = true; selected = null; syncSelTools();
-  status.textContent = 'Making your reel… (8 seconds)';
+  status.textContent = withAudio ? 'Making your reel with music… (8 seconds)' : 'Making your reel… (8 seconds)';
   const stream = canvas.captureStream(30);
-  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
+  let src = null;
+  if (withAudio) {
+    try {
+      const buf = await song(state.music);
+      await audioCtx.resume();
+      const dest = audioCtx.createMediaStreamDestination();
+      src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(dest);
+      dest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
+    } catch { status.textContent = 'Music couldn’t load — making the reel without it.'; }
+  }
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000, audioBitsPerSecond: 128_000 });
   const chunks = [];
   rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   const done = new Promise((res) => { rec.onstop = res; });
   rec.start();
+  src?.start();
   const start = performance.now();
   await new Promise((resolve) => {
     const tick = async () => {
@@ -529,10 +621,13 @@ $('#make-reel').addEventListener('click', async () => {
     requestAnimationFrame(tick);
   });
   rec.stop();
+  try { src?.stop(); } catch { /* ended */ }
   await done;
+  stream.getAudioTracks().forEach((tr) => tr.stop());
   reelType = mime.split(';')[0];
   reelBlob = new Blob(chunks, { type: reelType });
   const v = $('#reel-preview');
+  v.muted = false;
   v.src = URL.createObjectURL(reelBlob);
   $('#reel-actions').hidden = false;
   status.textContent = reelType === 'video/mp4' ? 'Ready.' : 'Ready. (This browser saves WebM — Instagram prefers MP4, so Safari or Chrome on a phone works best.)';
@@ -542,22 +637,118 @@ $('#make-reel').addEventListener('click', async () => {
 $('#share-reel').addEventListener('click', () => reelBlob && share(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`, reelType));
 $('#save-reel').addEventListener('click', () => reelBlob && download(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`));
 
+// ---------- send a note: the design travels in the link's #fragment (never sent to any server) ----------
+const b64 = {
+  enc: (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+  dec: (str) => new TextDecoder().decode(Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0))),
+};
+const clamp = (n, lo, hi, d) => (Number.isFinite(+n) ? Math.min(hi, Math.max(lo, +n)) : d);
+const r3 = (n) => Math.round(n * 1000) / 1000;
+function encodeNote(to, from) {
+  const st = state;
+  return b64.enc(JSON.stringify({
+    v: 1, f: st.format, b: [st.bg.kind, st.bg.id, st.bg.color], t: st.text, u: st.underline, fo: st.font, s: st.size, i: st.ink,
+    p: st.paper ? 1 : 0, po: st.paperOp, x: r3(st.tx), y: r3(st.ty), c: st.credit, co: st.creditOn ? 1 : 0, m: st.music || '',
+    st: st.stickers.slice(0, 20).map((k) => [k.id, r3(k.x), r3(k.y), r3(k.scale), Math.round(k.rot)]), to, fr: from,
+  }));
+}
+// everything from a link is untrusted: keep only known pictures, stickers, fonts and colours; clamp numbers; cut text
+function decodeNote(raw) {
+  const n = JSON.parse(b64.dec(raw));
+  if (n.v !== 1) throw new Error('unknown note');
+  const ids = (k) => new Set(catalog[k].map((x) => x.id));
+  const okBg = { backgrounds: ids('backgrounds'), photos: ids('photos'), simple: ids('simple') };
+  const [kind, id, color] = Array.isArray(n.b) ? n.b : [];
+  const colors = new Set([...Object.values(PAPERS), PAPER_TINT]);
+  const bg = kind === 'colors' ? { kind, id: '', color: colors.has(color) ? color : PAPERS.blush }
+    : okBg[kind]?.has(id) ? { kind, id, color: colors.has(color) ? color : PAPER_TINT } : defaults().bg;
+  const stickerIds = ids('stickers');
+  const str = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
+  return {
+    to: str(n.to, 30), from: str(n.fr, 30),
+    state: {
+      ...defaults(), format: FORMATS[n.f] ? n.f : 'post', bg, text: str(n.t, 220), underline: str(n.u, 80),
+      font: FONTS[n.fo] ? n.fo : 'Kalam', size: clamp(n.s, 40, 140, 72), ink: INKS.includes(n.i) ? n.i : INKS[0],
+      paper: !!n.p, paperOp: clamp(n.po, 0.3, 1, 0.9), tx: clamp(n.x, 0, 1, 0.5), ty: clamp(n.y, 0, 1, 0.14),
+      credit: str(n.c, 90), creditOn: !!n.co, music: catalog.music.some((m) => m.id === n.m) ? n.m : '',
+      stickers: (Array.isArray(n.st) ? n.st : []).slice(0, 20).filter((k) => Array.isArray(k) && stickerIds.has(k[0]))
+        .map(([sid, x, y, sc, rot]) => ({ id: sid, x: clamp(x, 0, 1, 0.5), y: clamp(y, 0, 1, 0.6), scale: clamp(sc, 0.2, 3, 1), rot: clamp(rot, -180, 180, 0) })),
+    },
+  };
+}
+
+const dlg = $('#send-dialog');
+$('#send-note').addEventListener('click', () => {
+  $('#send-warn').hidden = state.bg.kind !== 'upload';
+  $('#send-link').hidden = true;
+  dlg.showModal();
+});
+$('#send-close').addEventListener('click', () => dlg.close());
+$('#send-go').addEventListener('click', async () => {
+  const url = `${location.origin}${location.pathname}#n=${encodeNote($('#send-to').value.trim().slice(0, 30), $('#send-from').value.trim().slice(0, 30))}`;
+  const to = $('#send-to').value.trim();
+  const text = to ? `A little note for ${to} 💌` : 'A little note for you 💌';
+  if (navigator.share) {
+    try { await navigator.share({ title: 'overleyz', text, url }); dlg.close(); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const out = $('#send-link');
+  out.hidden = false; out.value = url; out.select();
+  try { await navigator.clipboard.writeText(url); $('#send-copied').hidden = false; } catch { /* the link is selected to copy by hand */ }
+});
+
+async function reveal(note) {
+  document.body.classList.add('revealing');
+  state = note.state;
+  $('#reveal-to').textContent = note.to ? `A note for ${note.to}` : 'A note for you';
+  $('#reveal-from').textContent = note.from ? `from ${note.from}` : '';
+  $('#reveal').hidden = false;
+  await Promise.all([state.font, 'Poppins'].map((k) => document.fonts.load(FONTS[k].css.replace('{s}', 40)).catch(() => {})));
+  const play = async () => {
+    const start = performance.now();
+    let src = null;
+    if (state.music) {
+      try { const buf = await song(state.music); await audioCtx.resume(); src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(audioCtx.destination); src.start(); } catch { /* silent is fine */ }
+    }
+    await new Promise((resolve) => {
+      const tick = async () => {
+        const t = (performance.now() - start) / 1000;
+        await draw(Math.min(t, 8));
+        if (t < 8) requestAnimationFrame(tick); else resolve();
+      };
+      requestAnimationFrame(tick);
+    });
+  };
+  $('#reveal-open').onclick = async () => { $('#reveal-open').hidden = true; await play(); $('#reveal-again').hidden = false; };
+  $('#reveal-again').onclick = play;
+  $('#reveal-reply').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
+  $('#reveal-keep').onclick = () => { document.body.classList.remove('revealing'); save(); history.replaceState(null, '', location.pathname); location.reload(); };
+  await draw(0);   // the envelope: just the picture until it's opened
+}
+
 // ---------- remember the last design (this browser only; the visitor's own photo is never kept) ----------
 function save() {
+  if (document.body.classList.contains('revealing')) return;
   try { localStorage.setItem('overleyz-v2', JSON.stringify({ ...state, bg: state.bg.kind === 'upload' ? defaults().bg : state.bg, stickers: state.stickers.map(({ _w, _h, ...s }) => s) })); } catch { /* private mode */ }
 }
 function restore() {
   try { const s = JSON.parse(localStorage.getItem('overleyz-v2') || 'null'); if (s && FORMATS[s.format]) state = { ...defaults(), ...s }; } catch { /* ignore */ }
 }
-$('#reset').addEventListener('click', () => { state = defaults(); state.bg.id = catalog.backgrounds[0]?.id || ''; selected = null; uploaded = null; syncSelTools(); bindWords(); renderBgGrid(); redraw(); });
+$('#reset').addEventListener('click', () => { state = defaults(); selected = null; uploaded = null; syncSelTools(); bindWords(); renderBgGrid(); redraw(); });
 
 // ---------- start ----------
 (async () => {
   restore();
   catalog = await (await fetch('assets/catalog.json')).json();
+  const hash = new URLSearchParams(location.hash.slice(1)).get('n');
+  if (hash) {
+    try { await reveal(decodeNote(hash)); return; } catch { history.replaceState(null, '', location.pathname); }
+  }
   if (!state.bg.id && state.bg.kind === 'backgrounds') state.bg.id = catalog.backgrounds.find((b) => b.id.includes('life'))?.id || catalog.backgrounds[0]?.id || '';
   document.querySelector(`input[name=format][value=${state.format}]`).checked = true;
   await Promise.all([state.font, 'Poppins'].map((k) => document.fonts.load(FONTS[k].css.replace('{s}', 40)).catch(() => {})));   // other letterings load when picked
-  bindWords(); renderMoods(); renderBgGrid(); renderStickers(); renderQuotes('');
+  bindWords(); renderMoods(); renderBgGrid(); renderStickers(); renderQuotes(''); renderMusic();
+  let asked = '';
+  try { asked = localStorage.getItem('overleyz-asked') || ''; } catch { /* private mode */ }
+  if (asked !== today()) showWelcome();   // once a day
   redraw();
 })();

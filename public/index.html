@@ -32,6 +32,10 @@
   <symbol id="i-front" viewBox="0 0 32 32"><rect x="10" y="4" width="16" height="16" rx="2"/><path d="M6 12v14h14"/></symbol>
   <symbol id="i-trash" viewBox="0 0 32 32"><path d="M6 9h20M13 9V6h6v3M8.5 9l1.3 17h12.4L23.5 9"/><path d="M14 14v7M18 14v7"/></symbol>
   <symbol id="i-size" viewBox="0 0 32 32"><path d="M6 26L26 6M18 6h8v8M14 26H6v-8"/></symbol>
+  <symbol id="i-send" viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="17" rx="2.5"/><path d="M4.5 9.5L16 18l11.5-8.5"/><path d="M16 4.5c-1.2-1.6-3.6-.9-3.4 1 .2 1.7 3.4 3.3 3.4 3.3s3.2-1.6 3.4-3.3c.2-1.9-2.2-2.6-3.4-1z"/></symbol>
+  <symbol id="i-music" viewBox="0 0 32 32"><path d="M12 23V8l14-3v15"/><circle cx="8.5" cy="23" r="3.5"/><circle cx="22.5" cy="20" r="3.5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 32 32"><path d="M11 7v18l15-9z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 32 32"><rect x="5" y="7" width="22" height="20" rx="3"/><path d="M5 13h22M11 4v6M21 4v6"/></symbol>
   <symbol id="i-turn" viewBox="0 0 32 32"><path d="M25 16a9 9 0 1 1-3-6.7"/><path d="M26 5v6h-6"/></symbol>
 </svg>
 <header class="top">
@@ -39,6 +43,38 @@
   <p class="tag">notes on pictures · by <a href="https://leyzays.webprvw.xyz" rel="noopener" target="_blank">leyzays</a></p>
   <nav class="topnav"><a href="./" aria-current="page">Make a post</a><a href="about.html">About</a></nav>
 </header>
+
+<section class="welcome" id="welcome" hidden aria-labelledby="welcome-q">
+  <h1 id="welcome-q">How are you today?</h1>
+  <p class="fine">Pick what feels closest. We’ll find words, a picture and music to match.</p>
+  <div class="chips big" id="welcome-moods"></div>
+  <div class="month" id="month" aria-label="Your moods this month"></div>
+  <button type="button" class="linkish" id="welcome-skip">Just let me make something</button>
+  <p class="fine">Your moods are kept only on this device.</p>
+</section>
+
+<section class="reveal-card" id="reveal" hidden aria-live="polite">
+  <p class="reveal-to" id="reveal-to"></p>
+  <p class="reveal-from fine" id="reveal-from"></p>
+  <button type="button" class="button" id="reveal-open">Open the note</button>
+  <button type="button" class="button ghost" id="reveal-again" hidden>Play again</button>
+  <div class="reveal-actions">
+    <button type="button" class="button" id="reveal-reply">Write one back</button>
+    <button type="button" class="button ghost" id="reveal-keep">Edit this one</button>
+  </div>
+</section>
+
+<dialog id="send-dialog" aria-labelledby="send-title">
+  <h2 id="send-title">Send as a note</h2>
+  <p class="fine">They’ll open a link that plays your note — the picture, then your words appearing (with music, if you picked some).</p>
+  <label class="block">To <span class="optional fine">optional</span><input type="text" id="send-to" maxlength="30" placeholder="e.g. Mia" autocomplete="off"></label>
+  <label class="block">From <span class="optional fine">optional</span><input type="text" id="send-from" maxlength="30" placeholder="e.g. Ley" autocomplete="off"></label>
+  <p class="fine warn" id="send-warn" hidden>Your own photo can’t travel in a link (it never leaves your device), so the note will use soft paper instead. To send your photo, use Share instead.</p>
+  <input type="text" id="send-link" readonly hidden aria-label="Your note link">
+  <p class="fine" id="send-copied" hidden>Link copied — paste it in a message.</p>
+  <div class="row"><button type="button" class="button" id="send-go">Get the link</button><button type="button" class="button ghost" id="send-close">Close</button></div>
+  <p class="fine">The note lives inside the link itself — nothing is stored on our server.</p>
+</dialog>
 
 <main class="studio">
   <section class="stage" aria-label="Preview">
@@ -53,7 +89,14 @@
       <button type="button" class="action" id="save-image" title="Save picture" aria-label="Save picture"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg></button>
       <button type="button" class="action primary" id="share-image" title="Share picture" aria-label="Share picture"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg></button>
       <button type="button" class="action" id="make-reel" title="Make an 8-second reel" aria-label="Make an 8-second reel"><svg class="ic" aria-hidden="true"><use href="#i-reel"/></svg></button>
+      <button type="button" class="action" id="send-note" title="Send as a note" aria-label="Send as a note to someone"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg></button>
       <button type="button" class="action subtle" id="reset" title="Start over" aria-label="Start over"><svg class="ic" aria-hidden="true"><use href="#i-restart"/></svg></button>
+    </div>
+    <div class="music-row">
+      <span title="Music for reels"><svg class="ic" aria-hidden="true"><use href="#i-music"/></svg></span>
+      <label class="sr" for="music">Music for reels</label>
+      <select id="music"></select>
+      <button type="button" class="icon-btn" id="music-play" aria-pressed="false" title="Listen" aria-label="Listen to the music"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></button>
     </div>
     <p class="fine reel-status" id="reel-status" aria-live="polite"></p>
     <div class="reel" id="reel-actions" hidden>
@@ -68,7 +111,7 @@
 
   <section class="panel">
     <div class="moods">
-      <p class="moods-q">How are you feeling?</p>
+      <p class="moods-q">How are you feeling? <button type="button" class="linkish" id="open-checkin">my month</button></p>
       <div class="chips" id="moods" role="radiogroup" aria-label="Mood"></div>
       <button type="button" class="icon-btn big" id="surprise" title="Surprise me" aria-label="Surprise me"><svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg></button>
     </div>
