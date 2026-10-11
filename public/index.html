@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>overleyz — make a post</title>
+<meta name="description" content="Put a gentle note on a painting, a travel photo or your own picture. Make an Instagram post or a reel and share it. Free, and your photos never leave your phone.">
+<meta name="theme-color" content="#EEE7EA">
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="app.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./">overleyz</a>
+  <p class="tag">notes on pictures · by <a href="https://leyzays.webprvw.xyz" rel="noopener" target="_blank">leyzays</a></p>
+</header>
+
+<main class="studio">
+  <section class="stage" aria-label="Preview">
+    <canvas id="canvas" width="1080" height="1350" aria-label="Your post preview — drag the text and stickers to move them"></canvas>
+    <div class="stage-tools" id="sel-tools" hidden>
+      <label>Size <input type="range" id="sel-size" min="0.2" max="3" step="0.01"></label>
+      <label>Turn <input type="range" id="sel-rot" min="-180" max="180" step="1"></label>
+      <button type="button" id="sel-front">Bring forward</button>
+      <button type="button" id="sel-del" class="danger">Remove</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="moods">
+      <p class="moods-q">How are you feeling?</p>
+      <div class="chips" id="moods" role="radiogroup" aria-label="Mood"></div>
+      <button type="button" class="button" id="surprise">Surprise me</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="picture">Picture</button>
+      <button role="tab" aria-selected="false" data-tab="words">Words</button>
+      <button role="tab" aria-selected="false" data-tab="stickers">Stickers</button>
+      <button role="tab" aria-selected="false" data-tab="share">Share</button>
+    </nav>
+
+    <div class="tab" id="tab-picture">
+      <div class="row formats" role="radiogroup" aria-label="Format">
+        <label><input type="radio" name="format" value="post" checked> Post 4:5</label>
+        <label><input type="radio" name="format" value="square"> Square</label>
+        <label><input type="radio" name="format" value="story"> Story / Reel 9:16</label>
+      </div>
+      <div class="row">
+        <label class="upload button ghost">Use my own photo <input type="file" id="upload" accept="image/*" hidden></label>
+        <span class="fine">Stays on your device — never uploaded.</span>
+      </div>
+      <div class="subtabs" role="tablist">
+        <button data-src="backgrounds" aria-selected="true">Paintings</button>
+        <button data-src="photos" aria-selected="false">Travel photos</button>
+        <button data-src="colors" aria-selected="false">Plain paper</button>
+      </div>
+      <div class="grid" id="bg-grid"></div>
+    </div>
+
+    <div class="tab" id="tab-words" hidden>
+      <label class="block">Your words
+        <textarea id="text" rows="3" maxlength="220" placeholder="Type your note… (Enter = new line)"></textarea>
+      </label>
+      <label class="block">Underline a phrase <span class="fine">optional — must match words above</span>
+        <input type="text" id="underline" maxlength="80">
+      </label>
+      <div class="row">
+        <label>Lettering
+          <select id="font">
+            <option value="Kalam">Thin pen</option>
+            <option value="Caveat">Loose script</option>
+            <option value="Nanum">Marker</option>
+            <option value="Newsreader">Book italic</option>
+            <option value="Poppins">Clean</option>
+          </select>
+        </label>
+        <label>Size <input type="range" id="size" min="40" max="140" step="1" value="72"></label>
+      </div>
+      <div class="row swatches" id="inks" aria-label="Ink colour"></div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="paper" checked> Soft paper behind the words</label>
+        <label>Paper <input type="range" id="paper-op" min="0.3" max="1" step="0.01" value="0.9"></label>
+      </div>
+      <p class="fine">Drag the words on the picture to move them.</p>
+      <label class="check"><input type="checkbox" id="credit-on" checked> Show who said it</label>
+      <details class="quotes" open>
+        <summary>Borrow a quote <span class="fine" id="q-count"></span></summary>
+        <div class="subtabs" id="q-src">
+          <button type="button" data-src="all" aria-selected="true">All</button>
+          <button type="button" data-src="leyzays" aria-selected="false">leyzays notes</button>
+          <button type="button" data-src="classics" aria-selected="false">Classics</button>
+        </div>
+        <input type="search" id="q-search" placeholder="Search — hope, rain, Austen, Shakespeare…">
+        <ul id="q-list"></ul>
+      </details>
+    </div>
+
+    <div class="tab" id="tab-stickers" hidden>
+      <div class="subtabs" id="st-groups" role="tablist"></div>
+      <div class="grid stickers" id="st-grid"></div>
+      <p class="fine">Tap to add. Drag to move; use Size and Turn under the picture.</p>
+    </div>
+
+    <div class="tab" id="tab-share" hidden>
+      <div class="share-cards">
+        <article>
+          <h2>Post</h2>
+          <p>A picture for your feed or story.</p>
+          <button class="button" id="share-image">Share picture</button>
+          <button class="button ghost" id="save-image">Save picture</button>
+        </article>
+        <article>
+          <h2>Reel</h2>
+          <p>8 seconds: a slow zoom, your words appear line by line.</p>
+          <button class="button" id="make-reel">Make reel</button>
+          <p class="fine" id="reel-status" aria-live="polite"></p>
+          <div id="reel-actions" hidden>
+            <video id="reel-preview" playsinline controls muted></video>
+            <button class="button" id="share-reel">Share reel</button>
+            <button class="button ghost" id="save-reel">Save reel</button>
+          </div>
+        </article>
+      </div>
+      <p class="fine">On a phone, Share opens your apps — choose Instagram, Facebook, Messenger or Viber. Instagram doesn't let websites post for you, so it opens Instagram with your picture ready.</p>
+      <button class="linkish" id="reset" type="button">Start over</button>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Classic quotes are from books and poems in the public domain. Paintings, photos and notes by <a href="https://leyzays.webprvw.xyz" rel="noopener" target="_blank">Ley Z · leyzays</a> · photos by @traveleyz. For personal sharing; please keep the small mark.</p>
+  <p>Nothing you make here is sent to us. Your last design is kept only in this browser.</p>
+</footer>
+</body>
+</html>
