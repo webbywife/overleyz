@@ -1,5 +1,6 @@
 import { scene } from './scene.js';
 import { smiley } from './smileys.js';
+import { count, visit } from './count.js';
 // overleyz — notes on pictures. Everything happens in the browser: nothing is uploaded or stored on a server.
 const $ = (s) => document.querySelector(s);
 const canvas = $('#canvas');
@@ -579,7 +580,7 @@ function surprise() {
   else if (pool.length) { const [k, x] = pick(pool); setBg({ kind: k, id: x.id, color: k === 'simple' ? pick(Object.values(palette())) : PAPER_TINT }); }
   else redraw();
 }
-$('#surprise').addEventListener('click', surprise);
+$('#surprise').addEventListener('click', () => { count('surprise'); surprise(); });
 
 // ---------- "How are you today?" — a daily check-in and a mood calendar, kept only on this device ----------
 const today = () => new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD in local time
@@ -625,6 +626,7 @@ function showWelcome() {
   for (const [key, label] of Object.entries(catalog.moods)) {
     const b = moodButton(key, label, true);
     b.addEventListener('click', () => {
+      count('checkin', key);
       const log = moodLog(); log[today()] = key;
       try { localStorage.setItem('overleyz-moods', JSON.stringify(log)); } catch { /* private mode */ }
       mood = key; renderMoods(); renderQuotes(); renderStickers(); renderMusic();
@@ -694,8 +696,9 @@ async function share(blob, name, type) {
   }
   download(blob, name);
 }
-$('#share-image').addEventListener('click', async () => share(await finalImage(), 'overleyz.jpg', 'image/jpeg'));
-$('#save-image').addEventListener('click', async () => download(await finalImage(), 'overleyz.jpg'));
+const style = () => (FONTS[state.font].shout ? 'loud' : 'soft');
+$('#share-image').addEventListener('click', async () => { count('share', style()); share(await finalImage(), 'overleyz.jpg', 'image/jpeg'); });
+$('#save-image').addEventListener('click', async () => { count('save', style()); download(await finalImage(), 'overleyz.jpg'); });
 
 let reelBlob = null, reelType = 'video/mp4';
 function pickMime(withAudio) {
@@ -778,12 +781,13 @@ $('#make-reel').addEventListener('click', async () => {
   v.muted = false;
   v.src = URL.createObjectURL(reelBlob);
   $('#reel-actions').hidden = false;
+  count('reel', style());
   status.textContent = reelType === 'video/mp4' ? 'Ready.' : 'Ready. (This browser saves WebM — Instagram prefers MP4, so Safari or Chrome on a phone works best.)';
   btn.disabled = false;
   redraw();
 });
-$('#share-reel').addEventListener('click', () => reelBlob && share(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`, reelType));
-$('#save-reel').addEventListener('click', () => reelBlob && download(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`));
+$('#share-reel').addEventListener('click', () => { if (!reelBlob) return; count('share', style()); share(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`, reelType); });
+$('#save-reel').addEventListener('click', () => { if (!reelBlob) return; count('save', style()); download(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`); });
 
 // ---------- send a note: the design travels in the link's #fragment (never sent to any server) ----------
 const b64 = {
@@ -836,6 +840,7 @@ $('#send-go').addEventListener('click', async () => {
   const url = `${location.origin}${location.pathname}#n=${encodeNote($('#send-to').value.trim().slice(0, 30), $('#send-from').value.trim().slice(0, 30))}`;
   const to = $('#send-to').value.trim();
   const text = to ? `A little note for ${to} 💌` : 'A little note for you 💌';
+  count('note', 'sent');
   if (navigator.share) {
     try { await navigator.share({ title: 'overleyz', text, url }); dlg.close(); return; } catch (e) { if (e.name === 'AbortError') return; }
   }
@@ -866,7 +871,9 @@ async function reveal(note) {
       requestAnimationFrame(tick);
     });
   };
-  $('#reveal-open').onclick = async () => { $('#reveal-open').hidden = true; await play(); $('#reveal-again').hidden = false; };
+  $('#reveal-open').onclick = async () => {
+    count('note', 'opened');
+    $('#reveal-open').hidden = true; await play(); $('#reveal-again').hidden = false; };
   $('#reveal-again').onclick = play;
   $('#reveal-reply').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
   $('#reveal-keep').onclick = () => { document.body.classList.remove('revealing'); save(); history.replaceState(null, '', location.pathname); location.reload(); };
@@ -905,7 +912,7 @@ function setVibe(v, restyle = true) {
   if (v === 'loud') loudPost(); else softPost();
   document.fonts.load(FONTS[state.font].css.replace('{s}', 40)).catch(() => {}).then(() => { bindWords(); renderBgGrid(); redraw(); });
 }
-document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('click', () => b.dataset.vibe !== vibe && setVibe(b.dataset.vibe)));
+document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('click', () => { if (b.dataset.vibe !== vibe) { count('vibe', b.dataset.vibe); setVibe(b.dataset.vibe); } }));
 
 // ---------- start ----------
 (async () => {
@@ -913,6 +920,7 @@ document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('cli
   setVibe(vibe, false);
   catalog = await (await fetch('assets/catalog.json')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
+  visit(hash ? 'note' : 'studio');
   if (hash) {
     try { await reveal(decodeNote(hash)); scene(); return; } catch { history.replaceState(null, '', location.pathname); }
   }

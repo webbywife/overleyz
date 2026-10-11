@@ -1,0 +1,28 @@
+// Counting + dashboard: use the studio, then sign in to the dashboard and read the totals.
+import { chromium } from 'playwright-core';
+const S = process.argv[2], BASE = process.env.BASE || 'http://127.0.0.1:8800/', PASS = process.env.PASS || 'local-test-pass';
+const b = await chromium.launch({ channel: 'chrome' });
+const errs = [];
+const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+p.on('pageerror', (e) => errs.push(e.message)); p.on('console', (m) => m.type() === 'error' && errs.push('console: ' + m.text()));
+const beacons = [];
+p.on('request', (r) => r.url().includes('hit.php') && beacons.push(r.postData()));
+await p.goto(BASE); await p.waitForTimeout(1200);
+await p.click('#welcome-moods .mood-card[data-mood=hopeful]'); await p.waitForTimeout(800);
+await p.click('#vibe [data-vibe=loud]'); await p.waitForTimeout(500);
+await p.click('#save-image'); await p.waitForTimeout(800);
+await p.goto(BASE + 'about.html'); await p.waitForTimeout(800);
+console.log('beacons:', beacons.length);
+const d = await b.newPage({ viewport: { width: 1200, height: 900 } });
+d.on('pageerror', (e) => errs.push('dash: ' + e.message));
+await d.goto(BASE + 'dashboard.php');
+await d.fill('input[name=password]', 'wrong'); await d.click('button[type=submit]');
+console.log('wrong password →', await d.textContent('.error'));
+await d.fill('input[name=password]', PASS); await d.click('button[type=submit]');
+await d.waitForSelector('.kpis');
+console.log('kpis:', (await d.$$eval('.kpis article', (a) => a.map((x) => x.innerText.replace(/\n/g, ' ')))).join(' | '));
+console.log('from:', await d.$eval('.two .card', (c) => c.innerText.replace(/\n/g, ' ')));
+if (S) await d.screenshot({ path: `${S}/dash.png`, fullPage: true });
+await d.click('button.ghost'); console.log('after sign out shows login:', await d.locator('input[name=password]').count() === 1);
+console.log('errors', errs.length ? errs : 'none');
+await b.close();
