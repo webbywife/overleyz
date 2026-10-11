@@ -1,8 +1,8 @@
-@font-face { font-family: Kalam; src: url(assets/fonts/Kalam-Light.ttf); font-weight: 300; font-display: swap; }
-@font-face { font-family: Caveat; src: url(assets/fonts/Caveat-VF.ttf); font-display: swap; }
-@font-face { font-family: Nanum; src: url(assets/fonts/NanumPenScript-Regular.ttf); font-display: swap; }
-@font-face { font-family: Newsreader; src: url(assets/fonts/Newsreader-Italic.ttf); font-style: italic; font-display: swap; }
-@font-face { font-family: Poppins; src: url(assets/fonts/Poppins-SemiBold.ttf); font-weight: 600; font-display: swap; }
+@font-face { font-family: Kalam; src: url(assets/fonts/Kalam-Light.woff2) format('woff2'); font-weight: 300; font-display: swap; }
+@font-face { font-family: Caveat; src: url(assets/fonts/Caveat-VF.woff2) format('woff2'); font-display: swap; }
+@font-face { font-family: Nanum; src: url(assets/fonts/NanumPenScript-Regular.woff2) format('woff2'); font-display: swap; }
+@font-face { font-family: Newsreader; src: url(assets/fonts/Newsreader-Italic.woff2) format('woff2'); font-style: italic; font-display: swap; }
+@font-face { font-family: Poppins; src: url(assets/fonts/Poppins-SemiBold.woff2) format('woff2'); font-weight: 600; font-display: swap; }
 
 :root {
   --mist: #EEE7EA; --mist-deep: #DCCFD5; --paper: #FFFDF9; --plum: #2F2030; --plum-soft: #6B5866; --rose: #B5737C;
@@ -131,3 +131,12 @@ textarea, input[type=text], input[type=search], select { display: block; width: 
 .moods-q { grid-column: 1 / -1; }
 .moods .chips { margin-bottom: 0; }
 input[type=range], input[type=checkbox], input[type=radio] { accent-color: var(--rose); }
+
+.grid button.pastel.mini { aspect-ratio: 1; border-radius: 50%; }
+.pastel-row { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.pastel-row button.pastel.mini { width: 34px; height: 34px; aspect-ratio: auto; }
+#bg-grid .vignette { position: relative; }
+#bg-grid .vignette img { position: absolute; inset: 14% 10% 22%; width: 80%; height: 64%; object-fit: contain; }
+
+.grid .more { grid-column: 1 / -1; height: 1px; }
+.grid img { background: var(--mist-deep); }

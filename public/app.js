@@ -12,7 +12,9 @@ const FONTS = {
   Poppins: { css: '600 {s}px Poppins', scale: 0.78, lead: 1.35 },
 };
 const INKS = ['#3D2A33', '#2F2030', '#FFFFFF', '#7A3B4C', '#2E4A3F', '#2D3E5C', '#8A5A2B'];
-const PAPERS = ['#F5ECDD', '#F6E4E1', '#E6ECDD', '#ECE6F2', '#F8F0D8', '#F8E6DA', '#E3ECF3', '#FFFDF9'];
+// the leyzays "simple" pastels (simple_style.py) + the cream of the illustrated posts
+const PAPERS = { blush: '#F6E4E1', sage: '#E6ECDD', lilac: '#ECE6F2', butter: '#F8F0D8', peach: '#F8E6DA', powder: '#E3ECF3', cream: '#F5EFE6' };
+const isPaper = (bg) => bg.kind === 'colors' || bg.kind === 'simple';
 const PAPER_TINT = '#F5ECDD';
 
 let catalog = { backgrounds: [], photos: [], stickers: [], quotes: [] };
@@ -25,9 +27,9 @@ let anim = null;               // reel animation time (seconds) while recording
 function defaults() {
   return {
     format: 'post',
-    bg: { kind: 'backgrounds', id: '', color: '#F5ECDD' },
+    bg: { kind: 'colors', id: '', color: PAPERS.blush },
     text: 'Slow is still / moving forward.', underline: 'moving forward',
-    font: 'Kalam', size: 72, ink: INKS[0], paper: true, paperOp: 0.9, tx: 0.5, ty: 0.14,
+    font: 'Kalam', size: 72, ink: INKS[0], paper: false, paperOp: 0.9, tx: 0.5, ty: 0.14,
     stickers: [], credit: '', creditOn: true,
   };
 }
@@ -88,10 +90,18 @@ async function draw(t = null) {
   // background
   ctx.fillStyle = state.bg.color || PAPER_TINT;
   ctx.fillRect(0, 0, W, H);
-  const src = state.bg.kind === 'upload' ? null : bgSrc(state.bg);
+  const src = isPaper(state.bg) || state.bg.kind === 'upload' ? null : bgSrc(state.bg);
   try {
     if (state.bg.kind === 'upload' && uploaded) cover(uploaded, W, H, zoom);
     else if (src && state.bg.id) cover(await load(src), W, H, zoom);
+    if (isPaper(state.bg)) await paperTexture(W, H);
+    if (state.bg.kind === 'simple' && state.bg.id) {
+      // same layout as the leyzays simple posts: 56% wide at most, bottom edge at 80% of the height
+      const art = await load(`assets/sticker/${state.bg.id}.webp`);
+      const k = Math.min(W * 0.56 / art.width, H * 0.36 / art.height) * zoom;
+      const w = art.width * k, h = art.height * k;
+      ctx.drawImage(art, (W - w) / 2, H * 0.80 - h, w, h);
+    }
   } catch { /* keep the paper colour */ }
 
   // words
@@ -180,12 +190,26 @@ async function draw(t = null) {
   // the small mark (kept on every picture)
   ctx.font = `600 ${Math.round(W * 0.026)}px Poppins`;
   ctx.textAlign = 'left';
-  ctx.shadowColor = 'rgba(30,18,24,.55)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-  ctx.fillStyle = 'rgba(255,250,242,.95)';
+  if (isPaper(state.bg)) { ctx.fillStyle = 'rgba(110,92,110,.9)'; }   // quiet plum on pastel, like the simple posts
+  else { ctx.shadowColor = 'rgba(30,18,24,.55)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2; ctx.fillStyle = 'rgba(255,250,242,.95)'; }
   ctx.fillText('#leyzays', W * 0.04, H - W * 0.04);
   ctx.textAlign = 'right';
   ctx.fillText('overleyz.art', W * 0.96, H - W * 0.04);
   ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+}
+
+async function paperTexture(W, H) {
+  try {
+    const grain = await load('assets/paper-grain.webp');
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = ctx.createPattern(grain, 'repeat');
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  } catch { /* plain is fine */ }
+  const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(70,50,60,0.06)');   // soft paper fall-off at the edges
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 }
 
 function hexA(hex, a) {
@@ -260,35 +284,75 @@ document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('cli
   document.querySelectorAll('.tab').forEach((t) => { t.hidden = t.id !== `tab-${b.dataset.tab}`; });
 }));
 
-let bgSource = 'backgrounds';
+// add grid tiles a screenful at a time: the next batch is built only when the end of the list scrolls into view
+function fill(grid, items, make, batch = 24) {
+  let i = 0;
+  const more = document.createElement('div'); more.className = 'more';
+  const step = () => {
+    const frag = document.createDocumentFragment();
+    for (const end = Math.min(items.length, i + batch); i < end; i++) frag.append(make(items[i]));
+    more.before(frag);
+    if (i >= items.length) { io.disconnect(); more.remove(); }
+  };
+  const io = new IntersectionObserver((e) => e[0].isIntersecting && step(), { root: grid, rootMargin: '200px' });
+  grid.append(more);
+  step();
+  io.observe(more);
+}
+
+let bgSource = 'colors';
+function setBg(bg) {
+  const wasPaper = isPaper(state.bg);
+  state.bg = bg;
+  if (isPaper(bg) !== wasPaper) { state.paper = !isPaper(bg); bindWords(); }   // soft paper band only over pictures
+  renderBgGrid(); redraw();
+}
+function pastelRow(grid, kind) {
+  for (const [name, c] of Object.entries(PAPERS)) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = kind === 'simple' ? 'pastel mini' : 'pastel';
+    b.setAttribute('aria-label', `${name} paper`); b.title = name;
+    b.setAttribute('aria-pressed', isPaper(state.bg) && state.bg.color === c);
+    const sw = document.createElement('span'); sw.className = 'swatch-tile'; sw.style.background = c;
+    b.append(sw);
+    b.addEventListener('click', () => setBg({ kind: kind === 'simple' && state.bg.kind === 'simple' ? 'simple' : 'colors', id: state.bg.kind === 'simple' ? state.bg.id : '', color: c }));
+    grid.append(b);
+  }
+}
 function renderBgGrid() {
   const grid = $('#bg-grid');
   grid.replaceChildren();
-  if (bgSource === 'colors') {
-    for (const c of PAPERS) {
+  if (bgSource === 'colors') { pastelRow(grid, 'colors'); return; }
+  if (bgSource === 'simple') {
+    const row = document.createElement('div'); row.className = 'pastel-row'; row.setAttribute('aria-label', 'Paper colour');
+    pastelRow(row, 'simple'); grid.append(row);
+    const paper = isPaper(state.bg) ? state.bg.color : PAPERS.blush;
+    const items = catalog.simple.filter((x) => !mood || x.mood === mood);
+    fill(grid, items.length ? items : catalog.simple, (item) => {
       const b = document.createElement('button');
-      b.type = 'button'; b.setAttribute('aria-label', `Plain paper ${c}`);
-      b.setAttribute('aria-pressed', state.bg.kind === 'colors' && state.bg.color === c);
-      const sw = document.createElement('span'); sw.className = 'swatch-tile'; sw.style.background = c;
-      b.append(sw);
-      b.addEventListener('click', () => { state.bg = { kind: 'colors', id: '', color: c }; renderBgGrid(); redraw(); });
-      grid.append(b);
-    }
+      b.type = 'button'; b.className = 'vignette'; b.title = item.theme;
+      b.setAttribute('aria-pressed', state.bg.kind === 'simple' && state.bg.id === item.id);
+      const sw = document.createElement('span'); sw.className = 'swatch-tile'; sw.style.background = paper;
+      const img = document.createElement('img'); img.loading = 'lazy'; img.decoding = 'async'; img.alt = item.theme || 'watercolour'; img.src = `assets/sticker/t/${item.id}.webp`;
+      b.append(sw, img);
+      b.addEventListener('click', () => setBg({ kind: 'simple', id: item.id, color: paper }));
+      return b;
+    });
     return;
   }
   const items = catalog[bgSource].filter((x) => !mood || x.mood === mood);
-  for (const item of (items.length ? items : catalog[bgSource])) {
+  fill(grid, items.length ? items : catalog[bgSource], (item) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.setAttribute('aria-pressed', state.bg.kind === bgSource && state.bg.id === item.id);
     b.title = item.place ? `${item.place}${item.scene ? ' — ' + item.scene : ''}` : item.theme;
     const img = document.createElement('img');
-    img.loading = 'lazy'; img.alt = b.title || 'painting';
+    img.loading = 'lazy'; img.decoding = 'async'; img.alt = b.title || 'painting';
     img.src = `assets/${bgSource === 'backgrounds' ? 'bg' : 'photo'}/t/${item.id}.webp`;
     b.append(img);
-    b.addEventListener('click', () => { state.bg = { kind: bgSource, id: item.id, color: PAPER_TINT }; renderBgGrid(); redraw(); });
-    grid.append(b);
-  }
+    b.addEventListener('click', () => setBg({ kind: bgSource, id: item.id, color: PAPER_TINT }));
+    return b;
+  });
 }
 document.querySelectorAll('#tab-picture .subtabs button').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('#tab-picture .subtabs button').forEach((x) => x.setAttribute('aria-selected', x === b));
@@ -304,8 +368,7 @@ $('#upload').addEventListener('change', async (e) => {
   } catch {
     uploaded = await load(URL.createObjectURL(file));
   }
-  state.bg = { kind: 'upload', id: '', color: PAPER_TINT };
-  renderBgGrid(); redraw();
+  setBg({ kind: 'upload', id: '', color: PAPER_TINT });
 });
 
 function bindWords() {
@@ -378,9 +441,9 @@ $('#surprise').addEventListener('click', () => {
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const qs = quoteMatches('');
   if (qs.length) useQuote(pick(qs));
-  const pool = ['backgrounds', 'photos'].flatMap((k) => catalog[k].filter((x) => !mood || x.mood === mood).map((x) => [k, x]));
-  if (pool.length) { const [k, x] = pick(pool); state.bg = { kind: k, id: x.id, color: PAPER_TINT }; }
-  renderBgGrid(); redraw();
+  const pool = ['simple', 'backgrounds', 'photos'].flatMap((k) => catalog[k].filter((x) => !mood || x.mood === mood).map((x) => [k, x]));
+  if (pool.length) { const [k, x] = pick(pool); setBg({ kind: k, id: x.id, color: k === 'simple' ? pick(Object.values(PAPERS)) : PAPER_TINT }); }
+  else redraw();
 });
 
 $('#q-search').addEventListener('input', (e) => renderQuotes(e.target.value));
@@ -400,11 +463,11 @@ function renderStickers() {
   grid.replaceChildren();
   let list = catalog.stickers.filter((x) => x.group === stGroup);
   if (mood && list.some((x) => x.mood === mood)) list = [...list.filter((x) => x.mood === mood), ...list.filter((x) => x.mood !== mood)];
-  for (const s of list) {
+  fill(grid, list, (s) => {
     const b = document.createElement('button');
     b.type = 'button'; b.setAttribute('aria-label', s.name ? `Add ${s.name}` : 'Add sticker'); if (s.name) b.title = s.name;
     const img = document.createElement('img');
-    img.loading = 'lazy'; img.alt = ''; img.src = `assets/sticker/${s.id}.webp`;
+    img.loading = 'lazy'; img.decoding = 'async'; img.alt = ''; img.src = `assets/sticker/t/${s.id}.webp`;
     b.append(img);
     b.addEventListener('click', () => {
       // drop new stickers in the half of the picture the words aren't in
@@ -412,8 +475,8 @@ function renderStickers() {
       state.stickers.push({ id: s.id, x: 0.5 + (Math.random() - 0.5) * 0.4, y: y + (Math.random() - 0.5) * 0.12, scale: 1, rot: Math.round((Math.random() - 0.5) * 16) });
       selected = state.stickers.length - 1; syncSelTools(); redraw();
     });
-    grid.append(b);
-  }
+    return b;
+  });
 }
 
 // ---------- share ----------
@@ -481,10 +544,10 @@ $('#save-reel').addEventListener('click', () => reelBlob && download(reelBlob, `
 
 // ---------- remember the last design (this browser only; the visitor's own photo is never kept) ----------
 function save() {
-  try { localStorage.setItem('overleyz', JSON.stringify({ ...state, bg: state.bg.kind === 'upload' ? defaults().bg : state.bg, stickers: state.stickers.map(({ _w, _h, ...s }) => s) })); } catch { /* private mode */ }
+  try { localStorage.setItem('overleyz-v2', JSON.stringify({ ...state, bg: state.bg.kind === 'upload' ? defaults().bg : state.bg, stickers: state.stickers.map(({ _w, _h, ...s }) => s) })); } catch { /* private mode */ }
 }
 function restore() {
-  try { const s = JSON.parse(localStorage.getItem('overleyz') || 'null'); if (s && FORMATS[s.format]) state = { ...defaults(), ...s }; } catch { /* ignore */ }
+  try { const s = JSON.parse(localStorage.getItem('overleyz-v2') || 'null'); if (s && FORMATS[s.format]) state = { ...defaults(), ...s }; } catch { /* ignore */ }
 }
 $('#reset').addEventListener('click', () => { state = defaults(); state.bg.id = catalog.backgrounds[0]?.id || ''; selected = null; uploaded = null; syncSelTools(); bindWords(); renderBgGrid(); redraw(); });
 
@@ -494,7 +557,7 @@ $('#reset').addEventListener('click', () => { state = defaults(); state.bg.id = 
   catalog = await (await fetch('assets/catalog.json')).json();
   if (!state.bg.id && state.bg.kind === 'backgrounds') state.bg.id = catalog.backgrounds.find((b) => b.id.includes('life'))?.id || catalog.backgrounds[0]?.id || '';
   document.querySelector(`input[name=format][value=${state.format}]`).checked = true;
-  await Promise.all(Object.values(FONTS).map((f) => document.fonts.load(f.css.replace('{s}', 40)).catch(() => {})));
+  await Promise.all([state.font, 'Poppins'].map((k) => document.fonts.load(FONTS[k].css.replace('{s}', 40)).catch(() => {})));   // other letterings load when picked
   bindWords(); renderMoods(); renderBgGrid(); renderStickers(); renderQuotes('');
   redraw();
 })();

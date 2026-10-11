@@ -90,6 +90,33 @@ POSE_MOOD = {
 }
 
 
+def simple():
+    """The leyzays 'simple' style: watercolour vignettes that sit on pastel paper (cut-outs reused from stickers)."""
+    import generate as g   # ~/ig-quotes: post number → theme
+    out = []
+    for f in sorted((IGQ / "simple").glob("*-vignette.png")):
+        num = int(f.stem.split("-")[0])
+        theme = g.POSTS[num - 1][0] if 0 < num <= len(g.POSTS) else ""
+        out.append({"id": f"st-{f.stem}", "theme": theme, "mood": mood_of(theme)})
+    return out
+
+
+def grain():
+    """A tileable paper grain (transparent, multiplied over the pastel) — same feel as the simple-style paper."""
+    p = OUT / "paper-grain.webp"
+    if p.exists():
+        return
+    import numpy as np
+    rng = np.random.default_rng(7)
+    n = rng.normal(0, 1, (256, 256))
+    from PIL import ImageFilter
+    fine = Image.fromarray(((n - n.min()) / (n.max() - n.min()) * 255).astype("uint8")).filter(ImageFilter.GaussianBlur(0.7))
+    a = np.array(fine).astype(float)
+    alpha = (np.abs(a - a.mean()) / 128 * 34).clip(0, 34).astype("uint8")
+    rgb = np.where(a[..., None] > a.mean(), 255, 60).astype("uint8").repeat(3, 2)
+    Image.fromarray(np.dstack([rgb, alpha])).save(p, "WEBP", quality=70)
+
+
 def stickers():
     groups = {
         "Journal": sorted((HOME / "leyzays-brand/journal/web").glob("*.png")),
@@ -104,12 +131,18 @@ def stickers():
             key = f"{group[:2].lower()}-{f.parent.name}-{f.stem}" if group == "Seasons" else f"{group[:2].lower()}-{f.stem}"
             im = None
             p = OUT / "sticker" / f"{key}.webp"
+            if not p.exists() and group == "Still life":
+                import simple_style   # ~/ig-quotes: keys the watercolour off its paper, like the simple posts do
+                save(simple_style.cut_out(f), p, 600, quality=82)
             if not p.exists():
                 im = Image.open(f).convert("RGBA")
                 bbox = im.getchannel("A").getbbox()
                 if bbox:
                     im = im.crop(bbox)
                 save(im, p, 600, quality=82)
+            t = OUT / "sticker" / "t" / f"{key}.webp"      # small thumbnail for the picker grids
+            if not t.exists():
+                save(Image.open(p).convert("RGBA"), t, 200, quality=78)
             item = {"id": key, "group": group}
             if group == "Sugar Valley":
                 pose = f.stem.rsplit("-", 1)[-1]
@@ -124,6 +157,15 @@ def quotes():
     return sorted({(p["quote"], p["theme"].replace("-", " ")) for p in posts})
 
 
+UNICODES = "U+0020-007E,U+00A0-00FF,U+0100-017F,U+2010-2027,U+2030-203A,U+20B1,U+2122,U+2190-2193,U+2600-2606,U+2661,U+2665"
+
+
+def webfont(src, dest):
+    """Latin-only woff2 (letters, accents, curly quotes, dashes, ₱) — a few dozen KB instead of MBs."""
+    from fontTools import subset
+    subset.main([str(src), f"--unicodes={UNICODES}", "--flavor=woff2", "--layout-features=*", f"--output-file={dest}"])
+
+
 def fonts():
     src = {"Kalam-Light.ttf": IGQ / "fonts/Kalam-Light.ttf", "Caveat-VF.ttf": IGQ / "fonts/Caveat-VF.ttf",
            "NanumPenScript-Regular.ttf": HOME / "leyzays-brand/fonts/NanumPenScript-Regular.ttf",
@@ -132,14 +174,16 @@ def fonts():
     d = OUT / "fonts"
     d.mkdir(parents=True, exist_ok=True)
     for name, f in src.items():
-        if f.exists() and not (d / name).exists():
-            shutil.copy(f, d / name)
+        out = d / (Path(name).stem + ".woff2")
+        if f.exists() and not out.exists():
+            webfont(f, out)
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     fonts()
-    cat = {"moods": MOODS, "backgrounds": backgrounds(), "photos": photos(), "stickers": stickers(),
+    grain()
+    cat = {"moods": MOODS, "simple": simple(), "backgrounds": backgrounds(), "photos": photos(), "stickers": stickers(),
            "quotes": [{"q": q, "t": t, "m": mood_of(t), "by": "leyzays"} for q, t in quotes()]
            + [{"q": q, "m": m, "by": a, "work": w} for m, q, a, w in CLASSICS]}
     (OUT / "catalog.json").write_text(json.dumps(cat, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

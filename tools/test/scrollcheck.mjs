@@ -1,0 +1,12 @@
+import { chromium } from 'playwright-core';
+const b = await chromium.launch({ channel: 'chrome' });
+const p = await b.newPage({ viewport: { width: 1300, height: 950 } });
+await p.goto('http://127.0.0.1:8799/'); await p.waitForTimeout(1200);
+await p.click('[data-src=photos]'); await p.waitForTimeout(500);
+const before = await p.locator('#bg-grid button').count();
+await p.locator('#bg-grid').evaluate((g) => { g.scrollTop = g.scrollHeight; }); await p.waitForTimeout(500);
+await p.locator('#bg-grid').evaluate((g) => { g.scrollTop = g.scrollHeight; }); await p.waitForTimeout(500);
+console.log('photo tiles at first', before, '→ after scrolling', await p.locator('#bg-grid button').count());
+await p.click('[data-tab=stickers]'); await p.waitForTimeout(400);
+console.log('sticker tiles at first', await p.locator('#st-grid button').count());
+await b.close();

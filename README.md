@@ -13,7 +13,7 @@ Pages: `index.html` (the studio) and `about.html` (how it works, sources, privac
 
 ## Layout
 - `public/` — the whole site (static): `index.html`, `app.css`, `app.js`, `assets/` (built).
-- `tools/build_assets.py` — builds `public/assets/` from the leyzays projects (`~/ig-quotes`, `~/leyzays`, `~/leyzays-brand`): text-free paintings, clean travel photos, sticker cut-outs, quotes, fonts. Re-run after new art: `~/ig-quotes/.venv/bin/python tools/build_assets.py`.
+- `tools/build_assets.py` — builds `public/assets/` from the leyzays projects (`~/ig-quotes`, `~/leyzays`, `~/leyzays-brand`): text-free paintings, clean travel photos, sticker cut-outs, quotes, fonts. Re-run after new art: `~/ig-quotes/.venv-clip/bin/python tools/build_assets.py` (needs scipy for the simple-style cut-outs).
 - `tools/classics.py` — the public-domain quote bank and mood mapping. Add quotes only with exact wording and a real source.
 - `tools/test/smoke.mjs` — Playwright check (both layouts, stickers, drag, save, reel). `cd tools/test && npm i && node smoke.mjs /tmp` with `python3 -m http.server 8799` running in `public/`.
 
