@@ -370,7 +370,7 @@ function renderMoods() {
     const b = document.createElement('button');
     b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', mood === key);
     b.textContent = label;
-    b.addEventListener('click', () => { mood = key; renderMoods(); renderQuotes(); renderBgGrid(); });
+    b.addEventListener('click', () => { mood = key; renderMoods(); renderQuotes(); renderBgGrid(); renderStickers(); });
     el.append(b);
   }
 }
@@ -385,9 +385,9 @@ $('#surprise').addEventListener('click', () => {
 
 $('#q-search').addEventListener('input', (e) => renderQuotes(e.target.value));
 
-let stGroup = 'Journal';
+let stGroup = 'Sugar Valley';
 function renderStickers() {
-  const groups = [...new Set(catalog.stickers.map((s) => s.group))];
+  const groups = [...new Set(catalog.stickers.map((s) => s.group))].sort((a, b) => (b === 'Sugar Valley') - (a === 'Sugar Valley'));
   const gEl = $('#st-groups');
   gEl.replaceChildren();
   for (const g of groups) {
@@ -398,14 +398,18 @@ function renderStickers() {
   }
   const grid = $('#st-grid');
   grid.replaceChildren();
-  for (const s of catalog.stickers.filter((x) => x.group === stGroup)) {
+  let list = catalog.stickers.filter((x) => x.group === stGroup);
+  if (mood && list.some((x) => x.mood === mood)) list = [...list.filter((x) => x.mood === mood), ...list.filter((x) => x.mood !== mood)];
+  for (const s of list) {
     const b = document.createElement('button');
-    b.type = 'button'; b.setAttribute('aria-label', 'Add sticker');
+    b.type = 'button'; b.setAttribute('aria-label', s.name ? `Add ${s.name}` : 'Add sticker'); if (s.name) b.title = s.name;
     const img = document.createElement('img');
     img.loading = 'lazy'; img.alt = ''; img.src = `assets/sticker/${s.id}.webp`;
     b.append(img);
     b.addEventListener('click', () => {
-      state.stickers.push({ id: s.id, x: 0.5 + (Math.random() - 0.5) * 0.3, y: 0.6 + (Math.random() - 0.5) * 0.2, scale: 1, rot: Math.round((Math.random() - 0.5) * 16) });
+      // drop new stickers in the half of the picture the words aren't in
+      const y = state.ty < 0.45 ? 0.72 : 0.22;
+      state.stickers.push({ id: s.id, x: 0.5 + (Math.random() - 0.5) * 0.4, y: y + (Math.random() - 0.5) * 0.12, scale: 1, rot: Math.round((Math.random() - 0.5) * 16) });
       selected = state.stickers.length - 1; syncSelTools(); redraw();
     });
     grid.append(b);

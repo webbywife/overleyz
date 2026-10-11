@@ -75,11 +75,28 @@ def photos():
     return out
 
 
+SKIP = {"newcomer-cookie-laughing"}   # cut-out still has a patch of floor
+
+# Sugar Valley character poses → overleyz moods (plain portraits get no mood and show for every mood)
+POSE_MOOD = {
+    "brave": "brave", "determined": "brave", "resolute": "brave", "cheering": "brave", "protective": "brave",
+    "joyful": "grateful", "celebrating": "grateful", "laughing": "grateful", "grateful": "grateful", "excited": "grateful",
+    "proud": "grateful", "eureka": "grateful", "impressed": "grateful", "handshake": "friends", "welcoming": "friends",
+    "welcomed": "friends", "teaching": "friends", "listening": "friends", "comforting": "friends", "warm": "in-love",
+    "soft": "in-love", "gentle": "in-love", "worried": "heartbroken", "vulnerable": "heartbroken", "nervous": "heartbroken",
+    "concerned": "heartbroken", "panicked": "heartbroken", "sorry": "letting-go", "shy": "growing", "annoyed": "letting-go",
+    "hopeful": "hopeful", "relieved": "letting-go", "calm": "tired", "settled": "tired", "thoughtful": "growing",
+    "surprised": "wanderlust", "spinning": "wanderlust", "confused": "growing", "announcing": "hopeful",
+}
+
+
 def stickers():
     groups = {
         "Journal": sorted((HOME / "leyzays-brand/journal/web").glob("*.png")),
         "Seasons": sorted((HOME / "leyzays/resources/planner/stickers").glob("*/*.png")),
         "Still life": sorted((IGQ / "simple").glob("*-vignette.png")),
+        "Sugar Valley": sorted(f for f in (HOME / "Desktop/0326/sweetestlovers/public/images/characters").glob("*.webp")
+                               if f.stem not in SKIP),
     }
     out = []
     for group, files in groups.items():
@@ -93,7 +110,12 @@ def stickers():
                 if bbox:
                     im = im.crop(bbox)
                 save(im, p, 600, quality=82)
-            out.append({"id": key, "group": group})
+            item = {"id": key, "group": group}
+            if group == "Sugar Valley":
+                pose = f.stem.rsplit("-", 1)[-1]
+                item["mood"] = POSE_MOOD.get(pose, "")
+                item["name"] = f.stem.replace("-", " ").title()
+            out.append(item)
     return out
 
 

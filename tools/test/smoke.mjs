@@ -11,7 +11,7 @@ for (const [name, vp] of [['desktop', { width: 1300, height: 1000 }], ['phone', 
   const sw = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
   console.log(name, 'scrollWidth/innerWidth', sw);
   if (name === 'desktop') {
-    await page.click('[data-tab=stickers]'); await page.click('#st-grid button'); await page.waitForTimeout(300);
+    await page.click('[data-tab=stickers]'); console.log('sticker groups:', (await page.locator('#st-groups button').allTextContents()).join(', ')); await page.click('#st-grid button'); await page.waitForTimeout(300);
     await page.click('[data-tab=words]'); await page.fill('#text', 'Rest is part\nof the journey.'); await page.fill('#underline', 'the journey');
     const box = await page.locator('#canvas').boundingBox();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.2); await page.mouse.down();

@@ -5,6 +5,7 @@
 - 100% in the browser: photos people use never leave their device, nothing is stored on a server, no accounts.
 - Pick a mood (hopeful, heartbroken, grateful, in love, tired, brave, wanderlust, letting go, growing, friends) → matching quotes, paintings and photos. **Surprise me** picks a quote and a picture for that mood.
 - Quotes: 454 leyzays notes + public-domain classics (Shakespeare, Austen, the Brontës, Dickinson, Thoreau, Emerson, Gibran, Montgomery, Alcott, King James Bible…) with the credit printed under the words. No movie lines or quotes from living people (copyright, and too many are misattributed).
+- Stickers: Sugar Valley dessert characters (from the Sweetest Lovers story, sorted by the chosen mood), journal cut-outs, seasonal stickers and watercolour still-lifes.
 - Formats: post 4:5, square, story/reel 9:16. Reels are recorded from the canvas (MP4 on Safari and current Chrome; WebM fallback).
 - Share uses the phone's share sheet (Web Share API) → Instagram, Facebook, Messenger, Viber; otherwise download.
 
@@ -18,4 +19,4 @@
 Static files: point the web root at `public/`. No PHP, database or build step.
 
 ## Rights
-Code © webbywife. **The paintings, photographs and leyzays notes in `public/assets/` are © Ley Z (leyzays / @traveleyz) and are not licensed for reuse** outside overleyz. Fonts: Kalam, Caveat, Nanum Pen Script, Newsreader, Poppins — SIL Open Font License.
+Code © webbywife. **The paintings, photographs, Sugar Valley characters and leyzays notes in `public/assets/` are © Ley Z (leyzays / @traveleyz) and are not licensed for reuse** outside overleyz. Fonts: Kalam, Caveat, Nanum Pen Script, Newsreader, Poppins — SIL Open Font License.
