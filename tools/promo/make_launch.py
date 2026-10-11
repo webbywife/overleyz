@@ -9,7 +9,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import brand  # noqa: E402  (the logo cut-out)
 
 W, H = 1080, 1920
-WORK, OUT = Path(sys.argv[1]), Path(sys.argv[2])
 ROOT = Path(__file__).resolve().parent.parent.parent
 FONTS = Path.home() / "Library/Fonts"
 BOLD = str(FONTS / "Poppins-Bold.ttf")
@@ -90,6 +89,7 @@ def run(*a):
 
 
 def main():
+    WORK, OUT = Path(sys.argv[1]), Path(sys.argv[2])
     m = json.loads((WORK / "marks.json").read_text())
     start, end = m["welcome"] + 0.2, m["end"]
     caption("this app asks how you are first", WORK / "cap1.png")
