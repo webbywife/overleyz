@@ -67,12 +67,13 @@ function moodButton(key, label, big) {
 let qSrc = 'all';
 
 // ---------- images ----------
+const ready = new Set();       // pictures that have finished loading
 function load(src) {
   if (!cache.has(src)) {
     cache.set(src, new Promise((res, rej) => {
       const img = new Image();
       img.decoding = 'async';
-      img.onload = () => res(img);
+      img.onload = () => { ready.add(src); res(img); };
       img.onerror = rej;
       img.src = src;
     }));
@@ -112,7 +113,9 @@ function wrap(text, maxW) {
   return out.filter((l, i, a) => l || (i > 0 && i < a.length - 1));
 }
 
-async function draw(t = null) {
+// quick = the live preview: while a big picture is still downloading, show its small thumbnail (already loaded
+// for the grid) and redraw once the sharp one arrives. Saving, sharing and reels always wait for the full picture.
+async function draw(t = null, quick = false) {
   const [W, H] = FORMATS[state.format];
   if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
   const zoom = t === null ? 1 : 1 + 0.08 * Math.min(1, t / 8);
@@ -124,7 +127,10 @@ async function draw(t = null) {
   const src = isPaper(state.bg) || state.bg.kind === 'upload' ? null : bgSrc(state.bg);
   try {
     if (state.bg.kind === 'upload' && uploaded) cover(uploaded, W, H, zoom);
-    else if (src && state.bg.id) cover(await load(src), W, H, zoom);
+    else if (src && state.bg.id && quick && !ready.has(src)) {
+      load(src).then(redraw, () => {});
+      cover(await load(src.replace(/\/([^/]+)$/, '/t/$1')), W, H, zoom);
+    } else if (src && state.bg.id) cover(await load(src), W, H, zoom);
     if (isPaper(state.bg) && !isBold(state.bg.color)) await paperTexture(W, H);
     if (state.bg.kind === 'simple' && state.bg.id) {
       // same layout as the leyzays simple posts: 56% wide at most, bottom edge at 80% of the height
@@ -313,7 +319,7 @@ let pending = false;
 function redraw() {
   if (pending) return;
   pending = true;
-  requestAnimationFrame(async () => { pending = false; await draw(); save(); });
+  requestAnimationFrame(async () => { pending = false; await draw(null, true); save(); });
 }
 
 // ---------- moving things on the picture ----------
@@ -418,6 +424,12 @@ function fill(grid, items, make, batch = 24) {
 }
 
 let bgSource = 'colors';
+// pictures for the chosen mood first; when a mood has only a few, the rest follow so the grid never looks empty
+function byMood(list) {
+  if (!mood) return list;
+  const match = list.filter((x) => x.mood === mood);
+  return match.length >= 9 ? match : [...match, ...list.filter((x) => x.mood !== mood)];
+}
 function setBg(bg) {
   const wasPaper = isPaper(state.bg);
   state.bg = bg;
@@ -453,7 +465,7 @@ function renderBgGrid() {
     const row = document.createElement('div'); row.className = 'pastel-row'; row.setAttribute('aria-label', 'Paper colour');
     pastelRow(row, 'simple'); grid.append(row);
     const paper = isPaper(state.bg) ? state.bg.color : Object.values(palette())[0];
-    const items = catalog.simple.filter((x) => !mood || x.mood === mood);
+    const items = byMood(catalog.simple);
     fill(grid, items.length ? items : catalog.simple, (item) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'vignette'; b.title = item.theme;
@@ -466,7 +478,7 @@ function renderBgGrid() {
     });
     return;
   }
-  const items = catalog[bgSource].filter((x) => !mood || x.mood === mood);
+  const items = byMood(catalog[bgSource]);
   fill(grid, items.length ? items : catalog[bgSource], (item) => {
     const b = document.createElement('button');
     b.type = 'button';

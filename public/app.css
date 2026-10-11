@@ -56,7 +56,12 @@ textarea, input[type=text], input[type=search], select { display: block; width: 
 .grid button { padding: 0; border: 2px solid transparent; border-radius: 6px; background: var(--mist); cursor: pointer; aspect-ratio: 4 / 5; overflow: hidden; }
 .grid button[aria-pressed="true"] { border-color: var(--plum); }
 .grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.grid.stickers button { aspect-ratio: 1; background: var(--mist); }
+/* fixed-shape tiles that every browser sizes the same (Safari collapses aspect-ratio buttons in a scrolling grid,
+   which made the thumbnails overlap): the height comes from padding, the picture fills it */
+.grid button:not(.mini) { position: relative; aspect-ratio: auto; height: 0; padding: 0 0 125%; }
+.grid.stickers button:not(.mini) { padding-bottom: 100%; }
+.grid button:not(.mini) > img, .grid button:not(.mini) > .swatch-tile { position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; }
+.grid.stickers button { background: var(--mist); }
 .grid.stickers img { object-fit: contain; padding: 6px; }
 .grid .swatch-tile { width: 100%; height: 100%; display: block; }
 
