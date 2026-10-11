@@ -22,7 +22,7 @@ for (const [name, vp] of [['desktop', { width: 1300, height: 1000 }], ['phone', 
     await page.click('[data-tab=words]'); await page.click('#q-src [data-src=classics]');
     console.log('heartbroken classics:', await page.textContent('#q-count'));
     await page.click('#q-list li:nth-child(5) button'); await page.waitForTimeout(500);
-    await page.click('[data-tab=share]');
+
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#save-image')]);
     await dl.saveAs(`${S}/ov-out.jpg`);
     await page.click('#surprise'); await page.waitForTimeout(900);

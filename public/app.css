@@ -105,3 +105,29 @@ textarea, input[type=text], input[type=search], select { display: block; width: 
 .about details summary { cursor: pointer; font-weight: 600; }
 .about details p { margin: 8px 0 0; }
 .about-cta { text-align: center; margin: 20px 0 8px; }
+
+/* icons */
+.sprite { display: none; }
+.ic { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tabs button { display: inline-flex; align-items: center; justify-content: center; padding: 8px 18px; }
+.tabs button .ic { width: 28px; height: 28px; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1.5px solid var(--mist-deep); background: var(--paper); color: var(--plum); cursor: pointer; }
+.icon-btn.big { width: 48px; height: 48px; background: var(--plum); color: var(--paper); border-color: var(--plum); }
+.icon-btn.danger { color: #9b2c3c; }
+.upload.icon-btn.big { background: var(--paper); color: var(--plum); border-color: var(--plum); }
+.stage-tools label { gap: 4px; }
+.stage-tools .ic { width: 20px; height: 20px; }
+.actions { display: flex; gap: 14px; justify-content: center; align-items: center; }
+.action { width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid var(--plum); background: var(--paper); color: var(--plum); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: transform .15s ease; }
+.action:hover, .action:focus-visible { transform: translateY(-2px); }
+.action.primary { width: 68px; height: 68px; background: var(--plum); color: var(--paper); }
+.action.primary .ic { width: 30px; height: 30px; }
+.action.subtle { border-color: var(--mist-deep); color: var(--plum-soft); }
+.action[disabled] { opacity: .5; cursor: progress; }
+.reel { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.reel-status, .hint { text-align: center; margin: 0; }
+.moods { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; align-items: start; }
+.moods-q { grid-column: 1 / -1; }
+.moods .chips { margin-bottom: 0; }
+input[type=range], input[type=checkbox], input[type=radio] { accent-color: var(--rose); }

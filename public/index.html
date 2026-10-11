@@ -19,6 +19,21 @@
 <script type="module" src="app.js"></script>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-picture" viewBox="0 0 32 32"><rect x="4" y="6" width="24" height="20" rx="3"/><circle cx="21.5" cy="12" r="2.6"/><path d="M5 23l7-7 5 5 3-3 7 6"/></symbol>
+  <symbol id="i-words" viewBox="0 0 32 32"><path d="M6 25c4-1 6-6 9-12 1.5-3 3.5-6 6-6 2 0 2.5 2 1 4-2 3-7 4-9 9"/><path d="M19 21c2-1 3.5-1 3.5.5S21 24 23 24s3-1.5 3.5-2.5"/><path d="M5 28h22"/></symbol>
+  <symbol id="i-sticker" viewBox="0 0 32 32"><path d="M16 4l3.4 7.1 7.6.9-5.6 5.3 1.5 7.7L16 21.3 9.1 25l1.5-7.7L5 12l7.6-.9z"/><path d="M22.5 25l1-5.2 3.9-3.6"/></symbol>
+  <symbol id="i-save" viewBox="0 0 32 32"><path d="M16 5v14"/><path d="M10.5 13.5L16 19l5.5-5.5"/><path d="M6 20v4.5A2.5 2.5 0 0 0 8.5 27h15a2.5 2.5 0 0 0 2.5-2.5V20"/></symbol>
+  <symbol id="i-share" viewBox="0 0 32 32"><path d="M28 4L13.5 18.5"/><path d="M28 4l-8.5 23-5.5-8.5L5 13z"/></symbol>
+  <symbol id="i-reel" viewBox="0 0 32 32"><rect x="4" y="9" width="24" height="18" rx="3"/><path d="M4 14h24M9 9l3 5M16 9l3 5M23 9l3 5"/><path d="M14 18.5v5l4.5-2.5z"/></symbol>
+  <symbol id="i-restart" viewBox="0 0 32 32"><path d="M7 16a9 9 0 1 0 3-6.7"/><path d="M6 5v6h6"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 32 32"><path d="M5 11a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><circle cx="16" cy="17" r="5"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 32 32"><path d="M14 4l2.2 6.8L23 13l-6.8 2.2L14 22l-2.2-6.8L5 13l6.8-2.2z"/><path d="M24 19l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/></symbol>
+  <symbol id="i-front" viewBox="0 0 32 32"><rect x="10" y="4" width="16" height="16" rx="2"/><path d="M6 12v14h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 32 32"><path d="M6 9h20M13 9V6h6v3M8.5 9l1.3 17h12.4L23.5 9"/><path d="M14 14v7M18 14v7"/></symbol>
+  <symbol id="i-size" viewBox="0 0 32 32"><path d="M6 26L26 6M18 6h8v8M14 26H6v-8"/></symbol>
+  <symbol id="i-turn" viewBox="0 0 32 32"><path d="M25 16a9 9 0 1 1-3-6.7"/><path d="M26 5v6h-6"/></symbol>
+</svg>
 <header class="top">
   <a class="brand" href="./">overleyz</a>
   <p class="tag">notes on pictures · by <a href="https://leyzays.webprvw.xyz" rel="noopener" target="_blank">leyzays</a></p>
@@ -29,24 +44,38 @@
   <section class="stage" aria-label="Preview">
     <canvas id="canvas" width="1080" height="1350" aria-label="Your post preview — drag the text and stickers to move them"></canvas>
     <div class="stage-tools" id="sel-tools" hidden>
-      <label>Size <input type="range" id="sel-size" min="0.2" max="3" step="0.01"></label>
-      <label>Turn <input type="range" id="sel-rot" min="-180" max="180" step="1"></label>
-      <button type="button" id="sel-front">Bring forward</button>
-      <button type="button" id="sel-del" class="danger">Remove</button>
+      <label title="Size"><svg class="ic" aria-hidden="true"><use href="#i-size"/></svg><span class="sr">Size</span> <input type="range" id="sel-size" min="0.2" max="3" step="0.01"></label>
+      <label title="Turn"><svg class="ic" aria-hidden="true"><use href="#i-turn"/></svg><span class="sr">Turn</span> <input type="range" id="sel-rot" min="-180" max="180" step="1"></label>
+      <button type="button" id="sel-front" class="icon-btn" title="Bring to front" aria-label="Bring to front"><svg class="ic" aria-hidden="true"><use href="#i-front"/></svg></button>
+      <button type="button" id="sel-del" class="icon-btn danger" title="Remove sticker" aria-label="Remove sticker"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></button>
     </div>
+    <div class="actions" role="toolbar" aria-label="Save and share">
+      <button type="button" class="action" id="save-image" title="Save picture" aria-label="Save picture"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg></button>
+      <button type="button" class="action primary" id="share-image" title="Share picture" aria-label="Share picture"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg></button>
+      <button type="button" class="action" id="make-reel" title="Make an 8-second reel" aria-label="Make an 8-second reel"><svg class="ic" aria-hidden="true"><use href="#i-reel"/></svg></button>
+      <button type="button" class="action subtle" id="reset" title="Start over" aria-label="Start over"><svg class="ic" aria-hidden="true"><use href="#i-restart"/></svg></button>
+    </div>
+    <p class="fine reel-status" id="reel-status" aria-live="polite"></p>
+    <div class="reel" id="reel-actions" hidden>
+      <video id="reel-preview" playsinline controls muted></video>
+      <div class="actions">
+        <button type="button" class="action" id="save-reel" title="Save reel" aria-label="Save reel"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg></button>
+        <button type="button" class="action primary" id="share-reel" title="Share reel" aria-label="Share reel"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg></button>
+      </div>
+    </div>
+    <p class="fine hint">Share opens your apps — Instagram, Facebook, Messenger, Viber.</p>
   </section>
 
   <section class="panel">
     <div class="moods">
       <p class="moods-q">How are you feeling?</p>
       <div class="chips" id="moods" role="radiogroup" aria-label="Mood"></div>
-      <button type="button" class="button" id="surprise">Surprise me</button>
+      <button type="button" class="icon-btn big" id="surprise" title="Surprise me" aria-label="Surprise me"><svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg></button>
     </div>
     <nav class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="picture">Picture</button>
-      <button role="tab" aria-selected="false" data-tab="words">Words</button>
-      <button role="tab" aria-selected="false" data-tab="stickers">Stickers</button>
-      <button role="tab" aria-selected="false" data-tab="share">Share</button>
+      <button role="tab" aria-selected="true" data-tab="picture" title="Picture" aria-label="Picture"><svg class="ic" aria-hidden="true"><use href="#i-picture"/></svg></button>
+      <button role="tab" aria-selected="false" data-tab="words" title="Words" aria-label="Words"><svg class="ic" aria-hidden="true"><use href="#i-words"/></svg></button>
+      <button role="tab" aria-selected="false" data-tab="stickers" title="Stickers" aria-label="Stickers"><svg class="ic" aria-hidden="true"><use href="#i-sticker"/></svg></button>
     </nav>
 
     <div class="tab" id="tab-picture">
@@ -56,7 +85,7 @@
         <label><input type="radio" name="format" value="story"> Story / Reel 9:16</label>
       </div>
       <div class="row">
-        <label class="upload button ghost">Use my own photo <input type="file" id="upload" accept="image/*" hidden></label>
+        <label class="upload icon-btn big" title="Use my own photo" aria-label="Use my own photo"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg><input type="file" id="upload" accept="image/*" hidden></label>
         <span class="fine">Stays on your device — never uploaded.</span>
       </div>
       <div class="subtabs" role="tablist">
@@ -111,29 +140,6 @@
       <p class="fine">Tap to add. Drag to move; use Size and Turn under the picture.</p>
     </div>
 
-    <div class="tab" id="tab-share" hidden>
-      <div class="share-cards">
-        <article>
-          <h2>Post</h2>
-          <p>A picture for your feed or story.</p>
-          <button class="button" id="share-image">Share picture</button>
-          <button class="button ghost" id="save-image">Save picture</button>
-        </article>
-        <article>
-          <h2>Reel</h2>
-          <p>8 seconds: a slow zoom, your words appear line by line.</p>
-          <button class="button" id="make-reel">Make reel</button>
-          <p class="fine" id="reel-status" aria-live="polite"></p>
-          <div id="reel-actions" hidden>
-            <video id="reel-preview" playsinline controls muted></video>
-            <button class="button" id="share-reel">Share reel</button>
-            <button class="button ghost" id="save-reel">Save reel</button>
-          </div>
-        </article>
-      </div>
-      <p class="fine">On a phone, Share opens your apps — choose Instagram, Facebook, Messenger or Viber. Instagram doesn't let websites post for you, so it opens Instagram with your picture ready.</p>
-      <button class="linkish" id="reset" type="button">Start over</button>
-    </div>
   </section>
 </main>
 

@@ -256,7 +256,7 @@ $('#sel-front').addEventListener('click', () => { const [s] = state.stickers.spl
 
 // ---------- panels ----------
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
-  document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', x === b));
+  document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
   document.querySelectorAll('.tab').forEach((t) => { t.hidden = t.id !== `tab-${b.dataset.tab}`; });
 }));
 
