@@ -39,15 +39,16 @@
   <symbol id="i-turn" viewBox="0 0 32 32"><path d="M25 16a9 9 0 1 1-3-6.7"/><path d="M26 5v6h-6"/></symbol>
 </svg>
 <header class="top">
-  <a class="brand" href="./" aria-label="overleyz home"><picture><source srcset="assets/logo-dark.webp" media="(prefers-color-scheme: dark)"><img src="assets/logo.webp" alt="overleyz" width="459" height="120"></picture></a>
+  <a class="brand" href="./" aria-label="overleyz home"><img class="logo-light" src="assets/logo.webp" alt="overleyz" width="459" height="120"><img class="logo-dark" src="assets/logo-dark.webp" alt="overleyz" width="459" height="120" loading="lazy"></a>
   <p class="tag">notes on pictures · by <a href="https://leyzays.webprvw.xyz" rel="noopener" target="_blank">leyzays</a></p>
+  <div class="vibe" id="vibe" role="group" aria-label="Studio style"><button type="button" data-vibe="soft" aria-pressed="true">Soft</button><button type="button" data-vibe="loud" aria-pressed="false">Loud</button></div>
   <nav class="topnav"><a href="./" aria-current="page">Make a post</a><a href="about.html">About</a></nav>
 </header>
 
 <section class="welcome" id="welcome" hidden aria-labelledby="welcome-q">
   <p class="welcome-hi" id="welcome-hi">Hello there,</p>
   <h1 id="welcome-q">How are you <em>today?</em></h1>
-  <p class="fine">Pick the friend who feels like you right now. We’ll find words, a picture and music to match.</p>
+  <p class="fine">Pick the face that feels like you right now. We’ll find words, a picture and music to match.</p>
   <div class="mood-cards" id="welcome-moods"></div>
   <div class="calendar">
     <div class="cal-head">
@@ -144,7 +145,7 @@
         <span class="fine">Stays on your device — never uploaded.</span>
       </div>
       <div class="subtabs" role="tablist">
-        <button data-src="colors" aria-selected="true">Pastel paper</button>
+        <button data-src="colors" id="src-colors" aria-selected="true">Pastel paper</button>
         <button data-src="simple" aria-selected="false">Simple</button>
         <button data-src="backgrounds" aria-selected="false">Paintings</button>
         <button data-src="photos" aria-selected="false">Travel photos</button>
@@ -167,13 +168,15 @@
             <option value="Nanum">Marker</option>
             <option value="Newsreader">Book italic</option>
             <option value="Poppins">Clean</option>
+            <option value="Anton">LOUD — tall</option>
+            <option value="Heavy">LOUD — heavy</option>
           </select>
         </label>
         <label>Size <input type="range" id="size" min="40" max="140" step="1" value="72"></label>
       </div>
       <div class="row swatches" id="inks" aria-label="Ink colour"></div>
       <div class="row">
-        <label class="check"><input type="checkbox" id="paper" checked> Soft paper behind the words</label>
+        <label class="check"><input type="checkbox" id="paper" checked> <span id="paper-label">Soft paper behind the words</span></label>
         <label>Paper <input type="range" id="paper-op" min="0.3" max="1" step="0.01" value="0.9"></label>
       </div>
       <p class="fine">Drag the words on the picture to move them.</p>

@@ -1,4 +1,5 @@
 import { scene } from './scene.js';
+import { smiley } from './smileys.js';
 // overleyz — notes on pictures. Everything happens in the browser: nothing is uploaded or stored on a server.
 const $ = (s) => document.querySelector(s);
 const canvas = $('#canvas');
@@ -11,10 +12,21 @@ const FONTS = {
   Nanum: { css: '{s}px Nanum', scale: 1.25, lead: 1.1 },
   Newsreader: { css: 'italic {s}px Newsreader', scale: 0.92, lead: 1.3 },
   Poppins: { css: '600 {s}px Poppins', scale: 0.78, lead: 1.35 },
+  Anton: { css: '{s}px Anton', shout: true },              // loud: tall poster capitals
+  Heavy: { css: '900 {s}px Montserrat', shout: true },     // loud: wide, heavy capitals
 };
 const INKS = ['#3D2A33', '#2F2030', '#FFFFFF', '#7A3B4C', '#2E4A3F', '#2D3E5C', '#8A5A2B'];
 // the leyzays "simple" pastels (simple_style.py) + the cream of the illustrated posts
 const PAPERS = { blush: '#F6E4E1', sage: '#E6ECDD', lilac: '#ECE6F2', butter: '#F8F0D8', peach: '#F8E6DA', powder: '#E3ECF3', cream: '#F5EFE6' };
+// the loud side: strong, dark and electric colours for big shouting words
+const BOLDS = { night: '#0E0B14', violet: '#2D0358', cobalt: '#1D2BFF', red: '#E3262E', pink: '#FF2E88', tangerine: '#FF6A1A', acid: '#D7FF3A', forest: '#0B3D2E' };
+const LOUD_INKS = ['#FFFFFF', '#0E0B14', '#D7FF3A', '#FF2E88', '#FFE14D', '#FF6A1A', '#1D2BFF', '#6FF2FF'];
+const isBold = (c) => Object.values(BOLDS).includes(c);
+const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255].map((v) => { v /= 255; return v <= 0.04 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0); };
+const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const bestInk = (bg, not = '') => LOUD_INKS.filter((c) => c !== not).sort((a, b) => contrast(b, bg) - contrast(a, bg))[0];
+let vibe = 'soft';
+try { vibe = localStorage.getItem('overleyz-vibe') === 'loud' ? 'loud' : 'soft'; } catch { /* private mode */ }
 const isPaper = (bg) => bg.kind === 'colors' || bg.kind === 'simple';
 const PAPER_TINT = '#F5ECDD';
 
@@ -35,7 +47,7 @@ function defaults() {
   };
 }
 let mood = '';
-// each mood has a Sugar Valley friend as its face, and its own soft colour (same colours as the mood calendar)
+// each mood has its own smiley (smileys.js) and soft colour (same colours as the mood calendar)
 const MOOD_FACE = {
   hopeful: ['su-tutti-frutti-hopeful', '#F6E2BE'], heartbroken: ['su-chippie-the-cookie-worried', '#DDE2EE'],
   grateful: ['su-cocoa-the-brownie-warm', '#F5DCD6'], 'in-love': ['su-butterscotch-belle-warm', '#F5D6E0'],
@@ -46,13 +58,7 @@ const MOOD_FACE = {
 function moodButton(key, label, big) {
   const b = document.createElement('button');
   b.type = 'button'; b.className = big ? 'mood-card' : 'mood-chip'; b.dataset.mood = key;
-  const face = MOOD_FACE[key];
-  if (face) {
-    b.classList.add(`mc-${key}`);
-    const img = document.createElement('img');
-    img.src = `assets/sticker/t/${face[0]}.webp`; img.alt = ''; img.decoding = 'async'; img.width = big ? 84 : 30; img.height = big ? 84 : 30;
-    b.append(img);
-  }
+  if (MOOD_FACE[key]) { b.classList.add(`mc-${key}`); b.append(smiley(key, big ? 76 : 28)); }
   const span = document.createElement('span'); span.textContent = label;
   b.append(span);
   return b;
@@ -118,7 +124,7 @@ async function draw(t = null) {
   try {
     if (state.bg.kind === 'upload' && uploaded) cover(uploaded, W, H, zoom);
     else if (src && state.bg.id) cover(await load(src), W, H, zoom);
-    if (isPaper(state.bg)) await paperTexture(W, H);
+    if (isPaper(state.bg) && !isBold(state.bg.color)) await paperTexture(W, H);
     if (state.bg.kind === 'simple' && state.bg.id) {
       // same layout as the leyzays simple posts: 56% wide at most, bottom edge at 80% of the height
       const art = await load(`assets/sticker/${state.bg.id}.webp`);
@@ -133,6 +139,8 @@ async function draw(t = null) {
 
   // words
   const f = FONTS[state.font];
+  if (f.shout) shout(W, H, t, f);
+  else {
   const size = Math.round(state.size * f.scale);
   ctx.font = f.css.replace('{s}', size);
   ctx.textBaseline = 'alphabetic';
@@ -192,6 +200,7 @@ async function draw(t = null) {
     ctx.globalAlpha = 1;
     boxes.text.h += cs * 2;
   }
+  }
 
   // stickers
   for (const [i, s] of state.stickers.entries()) {
@@ -219,12 +228,59 @@ async function draw(t = null) {
   // the small mark (kept on every picture)
   ctx.font = `600 ${Math.round(W * 0.026)}px Poppins`;
   ctx.textAlign = 'left';
-  if (isPaper(state.bg)) { ctx.fillStyle = 'rgba(110,92,110,.9)'; }   // quiet plum on pastel, like the simple posts
+  if (isPaper(state.bg) && isBold(state.bg.color)) { ctx.fillStyle = lum(state.bg.color) < 0.3 ? 'rgba(255,255,255,.85)' : 'rgba(14,11,20,.8)'; }
+  else if (isPaper(state.bg)) { ctx.fillStyle = 'rgba(110,92,110,.9)'; }   // quiet plum on pastel, like the simple posts
   else { ctx.shadowColor = 'rgba(30,18,24,.55)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2; ctx.fillStyle = 'rgba(255,250,242,.95)'; }
   ctx.fillText('#leyzays', W * 0.04, H - W * 0.04);
   ctx.textAlign = 'right';
   ctx.fillText('overleyz.art', W * 0.96, H - W * 0.04);
   ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+}
+
+// LOUD words: capitals stacked in short lines, each stretched to the same width — as big as the picture allows.
+// The line holding the underlined phrase shouts in a second colour. In reels each line punches in.
+function shout(W, H, t, f) {
+  const lines = (() => { ctx.font = f.css.replace('{s}', 100); return wrap(state.text.toUpperCase(), 520); })().filter(Boolean);
+  if (!lines.length) { boxes.text = { x: W * 0.3, y: state.ty * H, w: W * 0.4, h: 80 }; return; }
+  const cap = ctx.measureText('H').actualBoundingBoxAscent / 100 || 0.72;
+  const width = W * 0.9 * Math.min(1, Math.max(0.4, state.size / 110));
+  let sizes = lines.map((l) => Math.min(width / Math.max(1, ctx.measureText(l).width) * 100, (H * 0.2) / cap));
+  const gap = () => width * 0.03;
+  const total = () => sizes.reduce((a, s) => a + s * cap, 0) + gap() * (lines.length - 1);
+  const room = H * 0.8 - (state.credit && state.creditOn ? W * 0.07 : 0);
+  if (total() > room) { const k = room / total(); sizes = sizes.map((s) => s * k); }
+  const blockH = total();
+  const cx = state.tx * W;
+  const top = Math.max(W * 0.06, Math.min(H - blockH - W * 0.1, state.ty * H));
+  const ul = state.underline.trim().toLowerCase();
+  const behind = isPaper(state.bg) ? state.bg.color : '#0E0B14';
+  const second = bestInk(behind, state.ink), accent = contrast(second, behind) >= 2 ? second : state.ink;
+  if (state.paper && !isPaper(state.bg)) { ctx.fillStyle = `rgba(10,6,16,${state.paperOp * 0.62})`; ctx.fillRect(0, 0, W, H); }   // darken the picture
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  let y = top, widest = 0;
+  lines.forEach((line, i) => {
+    const s = sizes[i];
+    ctx.font = f.css.replace('{s}', Math.round(s));
+    widest = Math.max(widest, ctx.measureText(line).width);
+    y += s * cap;
+    let a = 1, k = 1;
+    if (t !== null) { const u = (t - 0.6 - i * 0.45) / 0.3; if (u <= 0) { y += gap(); return; } a = Math.min(1, u); k = u >= 1 ? 1 : 1 + 0.35 * (1 - u) ** 2; }
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(cx, y - s * cap / 2); ctx.scale(k, k);
+    ctx.fillStyle = ul && line.toLowerCase().includes(ul) ? accent : state.ink;
+    ctx.fillText(line, 0, s * cap / 2);
+    ctx.restore();
+    y += gap();
+  });
+  boxes.text = { x: cx - widest / 2 - 30, y: top - 30, w: widest + 60, h: blockH + 60 };
+  if (state.credit && state.creditOn) {
+    const cs = Math.round(W * 0.026);
+    ctx.font = `600 ${cs}px Poppins`;
+    ctx.globalAlpha = t === null ? 0.9 : Math.max(0, Math.min(0.9, (t - 0.8 - lines.length * 0.45) / 0.5));
+    ctx.fillStyle = state.ink;
+    ctx.fillText(`— ${state.credit.toUpperCase()}`, cx, top + blockH + cs * 2.4);
+    ctx.globalAlpha = 1;
+    boxes.text.h += cs * 2.4;
+  }
 }
 
 async function paperTexture(W, H) {
@@ -359,13 +415,22 @@ function setBg(bg) {
   const wasPaper = isPaper(state.bg);
   state.bg = bg;
   if (isPaper(bg) !== wasPaper) { state.paper = !isPaper(bg); bindWords(); }   // soft paper band only over pictures
+  if (fitInk()) bindWords();
   renderBgGrid(); redraw();
 }
+// loud words always stay readable: pick the strongest ink for the colour behind them
+function fitInk() {
+  if (!FONTS[state.font].shout) return false;
+  const behind = isPaper(state.bg) ? state.bg.color : '#0E0B14';
+  if (contrast(state.ink, behind) >= 3 && LOUD_INKS.includes(state.ink)) return false;
+  state.ink = bestInk(behind); return true;
+}
+const palette = () => (vibe === 'loud' ? BOLDS : PAPERS);
 function pastelRow(grid, kind) {
-  for (const [name, c] of Object.entries(PAPERS)) {
+  for (const [name, c] of Object.entries(palette())) {
     const b = document.createElement('button');
     b.type = 'button'; b.className = kind === 'simple' ? 'pastel mini' : 'pastel';
-    b.setAttribute('aria-label', `${name} paper`); b.title = name;
+    b.setAttribute('aria-label', `${name} ${vibe === 'loud' ? 'colour' : 'paper'}`); b.title = name;
     b.setAttribute('aria-pressed', isPaper(state.bg) && state.bg.color === c);
     const sw = document.createElement('span'); sw.className = 'swatch-tile'; sw.style.background = c;
     b.append(sw);
@@ -380,7 +445,7 @@ function renderBgGrid() {
   if (bgSource === 'simple') {
     const row = document.createElement('div'); row.className = 'pastel-row'; row.setAttribute('aria-label', 'Paper colour');
     pastelRow(row, 'simple'); grid.append(row);
-    const paper = isPaper(state.bg) ? state.bg.color : PAPERS.blush;
+    const paper = isPaper(state.bg) ? state.bg.color : Object.values(palette())[0];
     const items = catalog.simple.filter((x) => !mood || x.mood === mood);
     fill(grid, items.length ? items : catalog.simple, (item) => {
       const b = document.createElement('button');
@@ -431,13 +496,20 @@ function bindWords() {
   t.oninput = () => { state.text = t.value; state.credit = ''; redraw(); };
   const cr = $('#credit-on'); cr.checked = state.creditOn; cr.onchange = () => { state.creditOn = cr.checked; redraw(); };
   u.oninput = () => { state.underline = u.value; redraw(); };
-  f.onchange = async () => { state.font = f.value; await document.fonts.load(FONTS[f.value].css.replace('{s}', 40)); redraw(); };
+  f.onchange = async () => {
+    const was = FONTS[state.font].shout;
+    state.font = f.value;
+    if (FONTS[f.value].shout && !was) { state.size = 110; fitInk(); }
+    if (!FONTS[f.value].shout && was) { state.size = 72; if (!INKS.includes(state.ink)) state.ink = INKS[0]; }
+    await document.fonts.load(FONTS[f.value].css.replace('{s}', 40)); bindWords(); redraw();
+  };
+  $('#paper-label').textContent = FONTS[state.font].shout ? 'Darken the picture behind the words' : 'Soft paper behind the words';
   sz.oninput = () => { state.size = +sz.value; redraw(); };
   p.onchange = () => { state.paper = p.checked; redraw(); };
   po.oninput = () => { state.paperOp = +po.value; redraw(); };
   const inks = $('#inks');
   inks.replaceChildren();
-  for (const c of INKS) {
+  for (const c of FONTS[state.font].shout ? LOUD_INKS : INKS) {
     const b = document.createElement('button');
     b.type = 'button'; b.style.background = c; b.setAttribute('aria-label', `Ink ${c}`);
     b.setAttribute('aria-pressed', state.ink === c);
@@ -497,7 +569,8 @@ function surprise() {
   const qs = quoteMatches('');
   if (qs.length) useQuote(pick(qs));
   const pool = ['simple', 'backgrounds', 'photos'].flatMap((k) => catalog[k].filter((x) => !mood || x.mood === mood).map((x) => [k, x]));
-  if (pool.length) { const [k, x] = pick(pool); setBg({ kind: k, id: x.id, color: k === 'simple' ? pick(Object.values(PAPERS)) : PAPER_TINT }); }
+  if (vibe === 'loud' && Math.random() < 0.6) setBg({ kind: 'colors', id: '', color: pick(Object.values(BOLDS)) });
+  else if (pool.length) { const [k, x] = pick(pool); setBg({ kind: k, id: x.id, color: k === 'simple' ? pick(Object.values(palette())) : PAPER_TINT }); }
   else redraw();
 }
 $('#surprise').addEventListener('click', surprise);
@@ -524,7 +597,7 @@ function renderMonth() {
     if (md && catalog.moods[md]) {
       count++;
       dot.className = `day m-${md}`; dot.dataset.mood = md; dot.title = `${d} — ${catalog.moods[md]}`;
-      const face = new Image(); face.src = `assets/sticker/t/${MOOD_FACE[md][0]}.webp`; face.alt = catalog.moods[md]; face.decoding = 'async';
+      const face = smiley(md, 28); face.setAttribute('role', 'img'); face.setAttribute('aria-label', catalog.moods[md]); face.removeAttribute('aria-hidden');
       dot.append(face);
     } else {
       dot.className = 'day'; dot.textContent = d;
@@ -728,7 +801,7 @@ function decodeNote(raw) {
   const ids = (k) => new Set(catalog[k].map((x) => x.id));
   const okBg = { backgrounds: ids('backgrounds'), photos: ids('photos'), simple: ids('simple') };
   const [kind, id, color] = Array.isArray(n.b) ? n.b : [];
-  const colors = new Set([...Object.values(PAPERS), PAPER_TINT]);
+  const colors = new Set([...Object.values(PAPERS), ...Object.values(BOLDS), PAPER_TINT]);
   const bg = kind === 'colors' ? { kind, id: '', color: colors.has(color) ? color : PAPERS.blush }
     : okBg[kind]?.has(id) ? { kind, id, color: colors.has(color) ? color : PAPER_TINT } : defaults().bg;
   const stickerIds = ids('stickers');
@@ -737,7 +810,7 @@ function decodeNote(raw) {
     to: str(n.to, 30), from: str(n.fr, 30),
     state: {
       ...defaults(), format: FORMATS[n.f] ? n.f : 'post', bg, text: str(n.t, 220), underline: str(n.u, 80),
-      font: FONTS[n.fo] ? n.fo : 'Kalam', size: clamp(n.s, 40, 140, 72), ink: INKS.includes(n.i) ? n.i : INKS[0],
+      font: FONTS[n.fo] ? n.fo : 'Kalam', size: clamp(n.s, 40, 140, 72), ink: [...INKS, ...LOUD_INKS].includes(n.i) ? n.i : INKS[0],
       paper: !!n.p, paperOp: clamp(n.po, 0.3, 1, 0.9), tx: clamp(n.x, 0, 1, 0.5), ty: clamp(n.y, 0, 1, 0.14),
       credit: str(n.c, 90), creditOn: !!n.co, music: catalog.music.some((m) => m.id === n.m) ? n.m : '',
       stickers: (Array.isArray(n.st) ? n.st : []).slice(0, 20).filter((k) => Array.isArray(k) && stickerIds.has(k[0]))
@@ -802,11 +875,36 @@ function save() {
 function restore() {
   try { const s = JSON.parse(localStorage.getItem('overleyz-v2') || 'null'); if (s && FORMATS[s.format]) state = { ...defaults(), ...s }; } catch { /* ignore */ }
 }
-$('#reset').addEventListener('click', () => { state = defaults(); selected = null; uploaded = null; syncSelTools(); bindWords(); renderBgGrid(); redraw(); });
+$('#reset').addEventListener('click', () => { state = defaults(); if (vibe === 'loud') loudPost(); selected = null; uploaded = null; syncSelTools(); bindWords(); renderBgGrid(); redraw(); });
+
+// ---------- Soft / Loud: the pastel studio, or a dark one with strong colours and huge shouting words ----------
+function loudPost() {
+  state.font = 'Anton'; state.size = 110; state.ty = 0.18;
+  if (isPaper(state.bg)) state.bg = { kind: 'colors', id: '', color: BOLDS.night };
+  state.paper = !isPaper(state.bg);
+  fitInk();
+}
+function softPost() {
+  state.font = 'Kalam'; state.size = 72; state.ink = INKS[0]; state.ty = 0.14;
+  if (isPaper(state.bg)) state.bg = { kind: 'colors', id: '', color: PAPERS.blush };
+}
+function setVibe(v, restyle = true) {
+  vibe = v;
+  document.documentElement.dataset.vibe = v;
+  document.querySelector('meta[name=theme-color]').content = v === 'loud' ? '#0B0710' : '#FAFBFE';
+  document.querySelectorAll('#vibe button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.vibe === v)));
+  $('#src-colors').textContent = v === 'loud' ? 'Bold colour' : 'Pastel paper';
+  try { localStorage.setItem('overleyz-vibe', v); } catch { /* private mode */ }
+  if (!restyle) return;
+  if (v === 'loud') loudPost(); else softPost();
+  document.fonts.load(FONTS[state.font].css.replace('{s}', 40)).catch(() => {}).then(() => { bindWords(); renderBgGrid(); redraw(); });
+}
+document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('click', () => b.dataset.vibe !== vibe && setVibe(b.dataset.vibe)));
 
 // ---------- start ----------
 (async () => {
   restore();
+  setVibe(vibe, false);
   catalog = await (await fetch('assets/catalog.json')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
   if (hash) {

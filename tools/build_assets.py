@@ -195,7 +195,9 @@ def fonts():
            "Newsreader-Italic.ttf": HOME / "leyzays-brand/fonts/Newsreader-Italic.ttf",
            "Poppins-SemiBold.ttf": HOME / "Library/Fonts/Poppins-SemiBold.ttf",
            "Poppins-Regular.ttf": HOME / "Library/Fonts/Poppins-Regular.ttf",
-           "Poppins-Bold.ttf": HOME / "Library/Fonts/Poppins-Bold.ttf"}
+           "Poppins-Bold.ttf": HOME / "Library/Fonts/Poppins-Bold.ttf",
+           "Anton-Regular.ttf": ROOT / "tools/brand/fonts/Anton-Regular.ttf",
+           "Montserrat-Black.otf": HOME / "Library/Fonts/Montserrat-Black.otf"}
     d = OUT / "fonts"
     d.mkdir(parents=True, exist_ok=True)
     for name, f in src.items():

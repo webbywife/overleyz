@@ -5,6 +5,8 @@
 @font-face { font-family: Poppins; src: url(assets/fonts/Poppins-Regular.woff2) format('woff2'); font-weight: 400; font-display: swap; }
 @font-face { font-family: Poppins; src: url(assets/fonts/Poppins-SemiBold.woff2) format('woff2'); font-weight: 600; font-display: swap; }
 @font-face { font-family: Poppins; src: url(assets/fonts/Poppins-Bold.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: Anton; src: url(assets/fonts/Anton-Regular.woff2) format('woff2'); font-display: swap; }
+@font-face { font-family: Montserrat; src: url(assets/fonts/Montserrat-Black.woff2) format('woff2'); font-weight: 900; font-display: swap; }
 
 :root {
   --mist: #EEE7EA; --mist-deep: #DCCFD5; --paper: #FFFDF9; --plum: #2F2030; --plum-soft: #6B5866; --rose: #B5737C;
@@ -184,23 +186,23 @@ dialog .row { margin: 10px 0 0; }
 .mood-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px 12px; border: 0; border-radius: 22px 22px 22px 6px; background: var(--mc, var(--mist)); color: #2F2030; cursor: pointer; transition: transform .25s ease, box-shadow .25s ease; box-shadow: 0 10px 18px -16px rgba(47, 32, 48, .6); }
 .mood-card:nth-child(even) { border-radius: 22px 22px 6px 22px; transform: rotate(1.2deg); }
 .mood-card:nth-child(odd) { transform: rotate(-1deg); }
-.mood-card img { width: 84px; height: 84px; object-fit: contain; filter: drop-shadow(0 6px 6px rgba(47, 32, 48, .15)); transition: transform .3s ease; }
+.mood-card .smiley { width: 84px; height: 84px; object-fit: contain; filter: drop-shadow(0 6px 6px rgba(47, 32, 48, .15)); transition: transform .3s ease; }
 .mood-card span { font: 1.3rem/1.05 Nanum, cursive; }
 .mood-card:hover, .mood-card:focus-visible { transform: translateY(-4px) rotate(0); box-shadow: 0 18px 24px -18px rgba(47, 32, 48, .7); outline: none; }
-.mood-card:hover img, .mood-card:focus-visible img { animation: bob .9s ease-in-out infinite; }
+.mood-card:hover .smiley, .mood-card:focus-visible .smiley { animation: bob .9s ease-in-out infinite; }
 .mood-card:focus-visible { box-shadow: 0 0 0 3px var(--rose); }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
-.mood-card img { animation: drift 4s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.4s); }
+.mood-card .smiley { animation: drift 4s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.4s); }
 @keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 .mood-chip { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .95rem; border: 0; background: var(--mc, var(--mist)); color: #2F2030; border-radius: 999px; padding: 3px 12px 3px 4px; cursor: pointer; }
-.mood-chip:not(:has(img)) { padding: 6px 14px; }
-.mood-chip img { width: 30px; height: 30px; object-fit: contain; border-radius: 50%; background: rgba(255, 255, 255, .55); }
+.mood-chip:not(:has(svg)) { padding: 6px 14px; }
+.mood-chip .smiley { width: 30px; height: 30px; object-fit: contain; border-radius: 50%; background: rgba(255, 255, 255, .55); }
 .mood-chip[aria-checked="true"] { box-shadow: 0 0 0 2.5px var(--plum); font-weight: 600; }
 .mc-hopeful { --mc: #F6E2BE; } .mc-heartbroken { --mc: #DDE2EE; } .mc-grateful { --mc: #F5DCD6; } .mc-in-love { --mc: #F5D6E0; }
 .mc-tired { --mc: #E4E1EE; } .mc-brave { --mc: #F2D9CC; } .mc-wanderlust { --mc: #D6EBEC; } .mc-letting-go { --mc: #E1ECDA; }
 .mc-growing { --mc: #DCEAD3; } .mc-friends { --mc: #EEDDF0; }
-@media (prefers-reduced-motion: reduce) { .mood-card, .mood-card img, .mood-card:hover img { animation: none !important; transition: none; } }
-.mood-card:nth-child(3n) img { animation-delay: -1.3s; } .mood-card:nth-child(3n+1) img { animation-delay: -2.6s; }
+@media (prefers-reduced-motion: reduce) { .mood-card, .mood-card .smiley, .mood-card:hover img { animation: none !important; transition: none; } }
+.mood-card:nth-child(3n) .smiley { animation-delay: -1.3s; } .mood-card:nth-child(3n+1) .smiley { animation-delay: -2.6s; }
 
 /* ================= overleyz brand: layers from the logo =================
    Deep violet ink, a violet-to-berry gradient (the Z), and pale watercolour-blue planes laid over each other. */
@@ -347,14 +349,67 @@ dialog::backdrop { background: rgba(45, 3, 88, .3); -webkit-backdrop-filter: blu
 .month i { width: 34px; height: 34px; }
 .month span.day { width: 34px; height: 34px; border-radius: 11px; background: var(--field); font-size: .72rem; color: var(--ink-soft); display: flex; align-items: center; justify-content: center; }
 .month span.day[data-mood] { background: var(--mc); }
-.month span.day img { width: 30px; height: 30px; object-fit: contain; }
+.month span.day .smiley { width: 30px; height: 30px; object-fit: contain; }
 .month span.today { box-shadow: 0 0 0 2px var(--berry); color: var(--ink); font-weight: 600; }
 .month .m-hopeful { --mc: #F6E2BE; } .month .m-heartbroken { --mc: #DDE2EE; } .month .m-grateful { --mc: #F5DCD6; } .month .m-in-love { --mc: #F5D6E0; }
 .month .m-tired { --mc: #E4E1EE; } .month .m-brave { --mc: #F2D9CC; } .month .m-wanderlust { --mc: #D6EBEC; } .month .m-letting-go { --mc: #E1ECDA; }
 .month .m-growing { --mc: #DCEAD3; } .month .m-friends { --mc: #EEDDF0; }
 #month-count { text-align: center; margin: 8px 0 2px; font-size: .8rem; }
-@media (max-width: 420px) { .month { grid-template-columns: repeat(7, 30px); gap: 5px; } .month span.day, .month i { width: 30px; height: 30px; } .month span.day img { width: 26px; height: 26px; } .brand img { height: 32px; } }
+@media (max-width: 420px) { .month { grid-template-columns: repeat(7, 30px); gap: 5px; } .month span.day, .month i { width: 30px; height: 30px; } .month span.day .smiley { width: 26px; height: 26px; } .brand img { height: 32px; } }
 @media (prefers-reduced-motion: reduce) { .mood-card::before, .action { transition: none; } }
 html, body { overflow-x: clip; }   /* the slanted plane behind the picture may poke past a phone edge */
 .moods-q .linkish, .linkish { font: 500 .8rem Poppins, sans-serif; }
 .plane.a { opacity: 1; } .plane.b, .plane.c { opacity: .95; }
+
+/* smileys */
+.smiley { display: block; overflow: visible; }
+.mood-card .smiley { width: 76px; height: 76px; filter: drop-shadow(0 6px 6px rgba(45, 3, 88, .15)); }
+.mood-chip .smiley { width: 28px; height: 28px; margin: 1px 0; }
+.month span.day .smiley { width: 28px; height: 28px; }
+.month span.day[data-mood] { background: transparent; }
+.logo-dark { display: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-light { display: none; } :root:not([data-theme="light"]) .logo-dark { display: block; } }
+
+/* Soft / Loud switch */
+.vibe { display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); margin-left: auto; }
+.vibe button { font: 600 .82rem/1 Poppins, sans-serif; border: 0; background: transparent; color: var(--ink-soft); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+.vibe button[aria-pressed="true"] { background: var(--grad); color: #fff; }
+.vibe button[data-vibe="loud"] { font: 400 .95rem/1 Anton, Impact, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.vibe + .topnav { margin-left: 0; }
+
+/* ================= LOUD: dark studio, electric colours, huge shouting words ================= */
+:root[data-vibe="loud"] {
+  --bg: #0B0710; --surface: rgba(21, 14, 32, .84); --solid: #160E21; --field: #22172F; --line: #3A2950;
+  --ink: #FFFFFF; --ink-soft: #C8BCDB; --berry: #FF2E88; --acid: #D7FF3A;
+  --grad: linear-gradient(100deg, #FF2E88 0%, #FF6A1A 100%);
+  --plane: rgba(255, 46, 136, .2); --plane-2: rgba(29, 43, 255, .18); --plane-3: rgba(215, 255, 58, .1);
+  --shadow: 0 30px 60px -30px rgba(0, 0, 0, .9); --shadow-sm: 0 10px 20px -12px rgba(0, 0, 0, .8);
+  color-scheme: dark;
+}
+[data-vibe="loud"] .logo-light { display: none; } [data-vibe="loud"] .logo-dark { display: block; }
+[data-vibe="loud"] :is(.panel, .welcome, .about section, .about .cards article, dialog, .calendar, .stage-tools) { border-color: var(--line); }
+[data-vibe="loud"] :is(.welcome h1, .about h1, .about h2, .moods-q, dialog h2, .cal-head h2, .reveal-to, .about h3) {
+  font-family: Anton, Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .01em;
+}
+[data-vibe="loud"] .welcome h1 { font-size: clamp(3.4rem, 13vw, 7.5rem); line-height: .9; margin: 6px 0 12px; }
+[data-vibe="loud"] .about h1 { font-size: clamp(3rem, 9vw, 5.5rem); line-height: .92; }
+[data-vibe="loud"] .about h2 { font-size: 2.6rem; line-height: 1; } [data-vibe="loud"] .about h3 { font-size: 1.5rem; }
+[data-vibe="loud"] .moods-q { font-size: 1.9rem; line-height: 1; }
+[data-vibe="loud"] .cal-head h2 { font-size: 1.6rem; }
+[data-vibe="loud"] dialog h2 { font-size: 2.2rem; }
+[data-vibe="loud"] :is(.welcome h1 em, .about h1 em) { background: none; color: var(--acid); -webkit-text-fill-color: var(--acid); }
+[data-vibe="loud"] .welcome-hi { color: var(--acid); }
+[data-vibe="loud"] .tabs button[aria-selected="true"], [data-vibe="loud"] .subtabs button[aria-selected="true"], [data-vibe="loud"] .topnav a[aria-current="page"] { background: var(--acid); border-color: var(--acid); color: #0B0710; }
+[data-vibe="loud"] .button.ghost { color: #fff; border-color: #fff; }
+[data-vibe="loud"] .frame { background: #160E21; }
+[data-vibe="loud"] .frame::before { background: linear-gradient(165deg, #FF2E88, #1D2BFF); opacity: .55; }
+[data-vibe="loud"] .mood-card { background: var(--solid); border-color: var(--line); }
+[data-vibe="loud"] .mood-card::before { opacity: .22; }
+[data-vibe="loud"] .mood-card span { font: 400 1.15rem/1 Anton, Impact, sans-serif; text-transform: uppercase; letter-spacing: .02em; }
+[data-vibe="loud"] .mood-card:hover, [data-vibe="loud"] .mood-card:focus-visible { border-color: var(--acid); }
+[data-vibe="loud"] .plane.line { border-color: rgba(215, 255, 58, .35); }
+[data-vibe="loud"] .month span.today { box-shadow: 0 0 0 2px var(--acid); color: #fff; }
+[data-vibe="loud"] .month span.day:not([data-mood]) { background: var(--field); }
+[data-vibe="loud"] .grid button[aria-pressed="true"], [data-vibe="loud"] .swatches button[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--acid); border-color: var(--acid); }
+[data-vibe="loud"] :focus-visible { outline-color: var(--acid); }
+[data-vibe="loud"] .foot a, [data-vibe="loud"] .tag a { color: var(--acid); }

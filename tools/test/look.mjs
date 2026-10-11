@@ -8,7 +8,7 @@ for (const [n, vp] of [['d', { width: 1300, height: 900 }], ['m', { width: 390, 
   await p.addInitScript(() => { const k = 'overleyz-moods', d = new Date(); const log = {}; for (const [o, m] of [[0, 'grateful'], [1, 'hopeful'], [2, 'tired'], [4, 'brave'], [5, 'in-love'], [8, 'wanderlust']]) { const x = new Date(d); x.setDate(d.getDate() - o); log[x.toLocaleDateString('en-CA')] = m; } localStorage.setItem(k, JSON.stringify(log)); });
   await p.goto(BASE); await p.waitForTimeout(1800);
   await p.screenshot({ path: `${S}/look-welcome-${n}.png`, fullPage: true });
-  console.log(n, 'month:', await p.textContent('#month-name'), '|', await p.textContent('#month-count'), '| faces:', await p.locator('#month img').count());
+  console.log(n, 'month:', await p.textContent('#month-name'), '|', await p.textContent('#month-count'), '| faces:', await p.locator('#month .smiley').count());
   await p.click('#month-prev'); console.log(n, 'prev →', await p.textContent('#month-name')); await p.click('#month-next');
   await p.click('#welcome-skip'); await p.waitForTimeout(1500);
   await p.screenshot({ path: `${S}/look-studio-${n}.png` });
