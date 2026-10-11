@@ -80,3 +80,28 @@ textarea, input[type=text], input[type=search], select { display: block; width: 
 .chips button { font: inherit; font-size: .95rem; border: 1.5px solid var(--mist-deep); background: var(--mist); color: var(--plum); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
 .chips button[aria-checked="true"] { background: var(--rose); border-color: var(--rose); color: #fff; }
 .quotes li button.classic { font-family: Newsreader, Georgia, serif; font-style: italic; }
+
+/* header nav + about page */
+.topnav { margin-left: auto; display: flex; gap: 16px; }
+.topnav a { text-decoration: none; }
+.topnav a[aria-current="page"], .topnav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.about { max-width: 980px; margin: 0 auto; padding: 8px var(--gutter) 24px; }
+.about section { background: var(--paper); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
+.about h1 { font: 2.6rem/1.05 Nanum, cursive; margin: 0 0 10px; }
+.about h2 { font: 2rem/1.1 Nanum, cursive; margin: 0 0 10px; }
+.about h3 { font: 1.55rem/1.1 Nanum, cursive; margin: 0 0 6px; }
+.lead { font-size: 1.12rem; }
+.about-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: center; }
+@media (min-width: 760px) { .about-hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
+.about-hero img { width: 100%; height: auto; border-radius: 8px; }
+.steps { margin: 0; padding-left: 1.3rem; }
+.steps li { margin-bottom: 10px; }
+.about .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; background: transparent; padding: 0; }
+.about .cards article { background: var(--paper); border-radius: 14px; padding: 16px 18px; }
+.about .cards p { margin: 0; }
+.plain { margin: 0; padding-left: 1.1rem; }
+.plain li { margin-bottom: 8px; }
+.about details { border-top: 1px solid var(--mist-deep); padding: 10px 0; }
+.about details summary { cursor: pointer; font-weight: 600; }
+.about details p { margin: 8px 0 0; }
+.about-cta { text-align: center; margin: 20px 0 8px; }

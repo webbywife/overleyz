@@ -9,6 +9,8 @@
 - Formats: post 4:5, square, story/reel 9:16. Reels are recorded from the canvas (MP4 on Safari and current Chrome; WebM fallback).
 - Share uses the phone's share sheet (Web Share API) → Instagram, Facebook, Messenger, Viber; otherwise download.
 
+Pages: `index.html` (the studio) and `about.html` (how it works, sources, privacy, FAQ). Link previews use `assets/og.jpg`.
+
 ## Layout
 - `public/` — the whole site (static): `index.html`, `app.css`, `app.js`, `assets/` (built).
 - `tools/build_assets.py` — builds `public/assets/` from the leyzays projects (`~/ig-quotes`, `~/leyzays`, `~/leyzays-brand`): text-free paintings, clean travel photos, sticker cut-outs, quotes, fonts. Re-run after new art: `~/ig-quotes/.venv/bin/python tools/build_assets.py`.
