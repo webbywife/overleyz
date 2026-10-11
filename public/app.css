@@ -206,6 +206,8 @@ dialog .row { margin: 10px 0 0; }
 .mc-hopeful { --mc: #F6E2BE; } .mc-heartbroken { --mc: #DDE2EE; } .mc-grateful { --mc: #F5DCD6; } .mc-in-love { --mc: #F5D6E0; }
 .mc-tired { --mc: #E4E1EE; } .mc-brave { --mc: #F2D9CC; } .mc-wanderlust { --mc: #D6EBEC; } .mc-letting-go { --mc: #E1ECDA; }
 .mc-growing { --mc: #DCEAD3; } .mc-friends { --mc: #EEDDF0; }
+.mc-calm { --mc: #DDF0F3; } .mc-anxious { --mc: #EEF0D2; } .mc-lonely { --mc: #E3E7EE; } .mc-proud { --mc: #E9E0FA; }
+.mc-excited { --mc: #FBDDD6; } .mc-nostalgic { --mc: #F2E5D7; }
 @media (prefers-reduced-motion: reduce) { .mood-card, .mood-card .smiley, .mood-card:hover img { animation: none !important; transition: none; } }
 .mood-card:nth-child(3n) .smiley { animation-delay: -1.3s; } .mood-card:nth-child(3n+1) .smiley { animation-delay: -2.6s; }
 
@@ -418,3 +420,34 @@ html, body { overflow-x: clip; }   /* the slanted plane behind the picture may p
 [data-vibe="loud"] .grid button[aria-pressed="true"], [data-vibe="loud"] .swatches button[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--acid); border-color: var(--acid); }
 [data-vibe="loud"] :focus-visible { outline-color: var(--acid); }
 [data-vibe="loud"] .foot a, [data-vibe="loud"] .tag a { color: var(--acid); }
+
+/* ---------- Blush: the soft studio dressed in pinks (posts stay soft; the paper choices turn pink) ---------- */
+:root[data-vibe="blush"] {
+  --bg: #FFF4F6; --surface: rgba(255, 255, 255, .82); --solid: #FFFFFF; --field: #FCE9EE; --line: #F3D3DC;
+  --ink: #5B2238; --ink-soft: #8C5A6C; --berry: #C8507B;
+  --grad: linear-gradient(100deg, #7E2A50 0%, #A83F6A 55%, #C95A84 100%);
+  --plane: #FADDE5; --plane-2: #FDECF0; --plane-3: #F6E0EA;
+  --shadow: 0 24px 48px -30px rgba(126, 42, 80, .32); --shadow-sm: 0 8px 18px -12px rgba(126, 42, 80, .3);
+  --mist: var(--field); --mist-deep: var(--line); --paper: var(--solid); --plum: var(--ink); --plum-soft: var(--ink-soft); --rose: var(--berry);
+  color-scheme: light;
+}
+
+/* ---------- guides: numbered steps and short hints through the studio ---------- */
+.step { display: flex; align-items: center; gap: 10px; font: 600 1rem/1.3 Poppins, sans-serif; color: var(--ink); margin: 18px 0 4px; }
+.tab > .step:first-child { margin-top: 4px; }
+.step span { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--grad); color: #fff; font-size: .82rem; flex: none; }
+.fine.guide { margin: 2px 0 10px; }
+.fine strong { color: var(--ink); font-weight: 600; }
+.tabs button { flex-direction: column; gap: 2px; padding: 6px 20px 5px; }
+.tabs button span { font: 500 .72rem/1 Poppins, sans-serif; letter-spacing: .01em; }
+.tabs button .ic { width: 24px; height: 24px; }
+
+/* ---------- caption & tags ---------- */
+.caption-box { margin: 10px 0 0; }
+.caption-box summary { cursor: pointer; font: 600 .92rem/1.4 Poppins, sans-serif; color: var(--ink); }
+.caption-box summary .fine { font-weight: 400; margin-left: 4px; }
+.caption-box textarea { width: 100%; box-sizing: border-box; margin: 8px 0; font: .9rem/1.45 Poppins, sans-serif; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; resize: vertical; }
+
+/* the new feelings on the month calendar */
+.month .m-calm { --mc: #DDF0F3; } .month .m-anxious { --mc: #EEF0D2; } .month .m-lonely { --mc: #E3E7EE; }
+.month .m-proud { --mc: #E9E0FA; } .month .m-excited { --mc: #FBDDD6; } .month .m-nostalgic { --mc: #F2E5D7; }

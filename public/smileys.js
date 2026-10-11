@@ -4,6 +4,7 @@ const NS = 'http://www.w3.org/2000/svg';
 export const FACE_COLOR = {
   hopeful: '#FFD45C', heartbroken: '#9DB4E8', grateful: '#FFB38A', 'in-love': '#FF8FB8', tired: '#C7BCEB',
   brave: '#FF8A5C', wanderlust: '#6FD3C8', 'letting-go': '#A9DD8E', growing: '#8FD16E', friends: '#E3A6F0',
+  calm: '#9ED9E6', anxious: '#DCE36F', lonely: '#B7C3D6', proud: '#B69CF2', excited: '#FF7F6B', nostalgic: '#E8C3A0',
 };
 const INK = '#2D0358';
 // each face: eyes, mouth and extras as SVG path data on a 64×64 face (centre 32,32, radius 27)
@@ -18,6 +19,12 @@ const FACES = {
   'letting-go': { d: ['M20 30c3 2 7 2 9 0', 'M35 30c3 2 7 2 9 0', 'M27 42c3 2 7 2 10 0', 'M49 38c3 0 5-2 5-4'] },
   growing: { d: ['M21 39c5 7 17 7 22 0', 'M32 5v8'], dots: [[25, 30], [39, 30]], fill: ['M32 9c-6-1-9-5-8-8 5 0 8 3 8 8z', 'M32 9c5-2 9-1 10 2-4 2-8 1-10-2z'], leaf: true },
   friends: { d: ['M35 30c3-3 7-3 10 0', 'M20 37h24c-2 9-22 9-24 0z'], dots: [[25, 29]], blush: true },
+  calm: { d: ['M20 29c3 3 6 3 9 0', 'M35 29c3 3 6 3 9 0', 'M25 41c4 4 10 4 14 0', 'M45 12c2-2 4-2 6 0', 'M48 17c2-2 4-2 6 0'] },
+  anxious: { d: ['M21 24l7 2', 'M43 24l-7 2', 'M21 43c2-3 4-3 5.5 0s3.5 3 5.5 0 3.5-3 5.5 0 3.5 3 5.5 0'], dots: [[25, 31], [39, 31]], fill: ['M50 19c0 3-2 5-3.5 5S43 22 43 19c0-2 3.5-6 3.5-6s3.5 4 3.5 6z'], tear: true },
+  lonely: { d: ['M28 44h8', 'M21 27c2-1 5-1 7 0', 'M36 27c2-1 5-1 7 0'], dots: [[24, 34], [38, 34]], fill: ['M52 6a7 7 0 1 0 5 11 5.5 5.5 0 1 1-5-11z'] },
+  proud: { d: ['M20 31l4.5-4.5 4.5 4.5', 'M35 31l4.5-4.5 4.5 4.5', 'M21 38c5 8 17 8 22 0', 'M24 15l2-7 6 5 6-5 2 7z'], blush: true },
+  excited: { d: ['M22 39h20c-2 9-18 9-20 0z'], fill: ['M25 22l1.8 3.8 4.2.5-3.1 2.9.8 4.1-3.7-2-3.7 2 .8-4.1-3.1-2.9 4.2-.5z', 'M39 22l1.8 3.8 4.2.5-3.1 2.9.8 4.1-3.7-2-3.7 2 .8-4.1-3.1-2.9 4.2-.5z'] },
+  nostalgic: { d: ['M24 41c4 3 10 3 14 0', 'M50 19V9l6-2v10'], dots: [[27, 28], [41, 28]], fill: ['M50 19a3 2.4 0 1 1-6 0 3 2.4 0 1 1 6 0z', 'M56 17a3 2.4 0 1 1-6 0 3 2.4 0 1 1 6 0z'] },
 };
 
 export function smiley(key, size = 64) {

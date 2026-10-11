@@ -5,17 +5,19 @@ declare(strict_types=1);
 
 const OVZ_DATA = __DIR__ . '/../../overleyz-data';          // outside the repo and the web root
 const OVZ_KEEP_DAYS = 400;
-const OVZ_MOODS = ['hopeful', 'heartbroken', 'grateful', 'in-love', 'tired', 'brave', 'wanderlust', 'letting-go', 'growing', 'friends'];
+const OVZ_MOODS = ['hopeful', 'heartbroken', 'grateful', 'in-love', 'tired', 'brave', 'wanderlust', 'letting-go', 'growing', 'friends',
+    'calm', 'anxious', 'lonely', 'proud', 'excited', 'nostalgic'];
 const OVZ_EVENTS = [
     'visit'    => ['studio', 'about', 'note'],
     'visitor'  => [''],                                      // first visit of the day on that device (flag kept on the device)
     'from'     => ['direct', 'tiktok', 'instagram', 'facebook', 'messenger', 'google', 'leyzays', 'other'],
     'device'   => ['phone', 'computer'],
     'checkin'  => OVZ_MOODS,
-    'vibe'     => ['soft', 'loud'],
+    'vibe'     => ['soft', 'blush', 'loud'],
     'save'     => ['soft', 'loud'],
     'share'    => ['soft', 'loud'],
     'reel'     => ['soft', 'loud'],
+    'caption'  => ['copied'],
     'note'     => ['sent', 'opened'],
     'surprise' => [''],
 ];

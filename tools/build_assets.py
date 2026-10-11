@@ -153,8 +153,25 @@ def stickers():
 
 
 def quotes():
+    """leyzays notes: the site posts, the quote bank, the photo-post scene notes and the notes written for overleyz."""
     posts = json.loads((HOME / "leyzays/database/data/posts.json").read_text())
-    return sorted({(p["quote"], p["theme"].replace("-", " ")) for p in posts})
+    pairs = [(p["quote"], p["theme"].replace("-", " ")) for p in posts]
+    bank = json.loads((IGQ / "quotes_bank.json").read_text())
+    pairs += [(q if isinstance(q, str) else q.get("quote", ""), t) for t, qs in bank.items() for q in qs]
+    sys.path.insert(0, str(IGQ))
+    from quotes_scenes import Q as SCENES   # (scene, theme, quote, underline, caption)
+    pairs += [(row[2], row[1]) for row in SCENES]
+    from notes_new import NOTES
+    out, seen = [], set()
+    key = lambda q: "".join(ch for ch in q.lower() if ch.isalnum())   # same note, different punctuation or line breaks
+    for q, t in pairs:
+        if q and key(q) not in seen:
+            seen.add(key(q)); out.append({"q": q, "t": t, "m": mood_of(t), "by": "leyzays"})
+    for m, notes in NOTES.items():
+        for q in notes:
+            if key(q) not in seen:
+                seen.add(key(q)); out.append({"q": q, "t": m, "m": m, "by": "leyzays"})
+    return sorted(out, key=lambda x: x["q"])
 
 
 UNICODES = "U+0020-007E,U+00A0-00FF,U+0100-017F,U+2010-2027,U+2030-203A,U+20B1,U+2122,U+2190-2193,U+2600-2606,U+2661,U+2665"
@@ -211,7 +228,7 @@ def main():
     fonts()
     grain()
     cat = {"moods": MOODS, "music": music(), "simple": simple(), "backgrounds": backgrounds(), "photos": photos(), "stickers": stickers(),
-           "quotes": [{"q": q, "t": t, "m": mood_of(t), "by": "leyzays"} for q, t in quotes()]
+           "quotes": quotes()
            + [{"q": q, "m": m, "by": a, "work": w} for m, q, a, w in CLASSICS]}
     (OUT / "catalog.json").write_text(json.dumps(cat, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print({k: len(v) for k, v in cat.items()})

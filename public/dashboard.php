@@ -100,7 +100,8 @@ function list_bars(array $items, array $labels = []): string {
     }
     return $out . ($items ? '' : '<li class="empty">Nothing yet</li>') . '</ul>';
 }
-$moodLabels = ['hopeful' => 'Hopeful', 'heartbroken' => 'Heartbroken', 'grateful' => 'Grateful', 'in-love' => 'In love', 'tired' => 'Tired, need rest', 'brave' => 'Brave', 'wanderlust' => 'Wanderlust', 'letting-go' => 'Letting go', 'growing' => 'Growing', 'friends' => 'Friends & family'];
+$moodLabels = ['hopeful' => 'Hopeful', 'heartbroken' => 'Heartbroken', 'grateful' => 'Grateful', 'in-love' => 'In love', 'tired' => 'Tired, need rest', 'brave' => 'Brave', 'wanderlust' => 'Wanderlust', 'letting-go' => 'Letting go', 'growing' => 'Growing', 'friends' => 'Friends & family',
+    'calm' => 'Calm', 'anxious' => 'Anxious', 'lonely' => 'Lonely', 'proud' => 'Proud', 'excited' => 'Excited', 'nostalgic' => 'Nostalgic'];
 $fromLabels = ['direct' => 'Typed it / bookmark', 'tiktok' => 'TikTok', 'instagram' => 'Instagram', 'facebook' => 'Facebook', 'messenger' => 'Messenger', 'google' => 'Google', 'leyzays' => 'leyzays site', 'other' => 'Other sites'];
 $made = ['save' => 'Saved', 'share' => 'Shared', 'reel' => 'Reels made'];
 $madeTot = []; foreach ($made as $e => $l) $madeTot[$l] = $sum($e);
@@ -119,7 +120,8 @@ page_start('overleyz dashboard'); ?>
     <article><b><?= $sum('share') + $sum('save') ?></b><span>posts saved or shared</span></article>
     <article><b><?= $sum('reel') ?></b><span>reels made</span></article>
     <article><b><?= $tot['note']['sent'] ?? 0 ?> / <?= $tot['note']['opened'] ?? 0 ?></b><span>notes sent / opened</span></article>
-    <article><b><?= ($tot['vibe']['loud'] ?? 0) ?></b><span>switched to LOUD</span></article>
+    <article><b><?= ($tot['vibe']['loud'] ?? 0) ?> / <?= ($tot['vibe']['blush'] ?? 0) ?></b><span>switched to LOUD / Blush</span></article>
+    <article><b><?= ($tot['caption']['copied'] ?? 0) ?></b><span>captions copied</span></article>
   </section>
   <section class="card"><h2>Visitors each day</h2><?= bars($dayList, $byDay, 'visitor') ?><p class="axis"><span><?= $h($dayList[0]) ?></span><span><?= $h($today) ?></span></p></section>
   <section class="card"><h2>Posts shared each day</h2><?= bars($dayList, $byDay, 'share') ?><p class="axis"><span><?= $h($dayList[0]) ?></span><span><?= $h($today) ?></span></p></section>

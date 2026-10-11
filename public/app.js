@@ -19,6 +19,8 @@ const FONTS = {
 const INKS = ['#3D2A33', '#2F2030', '#FFFFFF', '#7A3B4C', '#2E4A3F', '#2D3E5C', '#8A5A2B'];
 // the leyzays "simple" pastels (simple_style.py) + the cream of the illustrated posts
 const PAPERS = { blush: '#F6E4E1', sage: '#E6ECDD', lilac: '#ECE6F2', butter: '#F8F0D8', peach: '#F8E6DA', powder: '#E3ECF3', cream: '#F5EFE6' };
+// the Blush studio: a family of pinks, from petal to peony
+const BLUSHES = { blush: '#F6E4E1', petal: '#FBEAEE', rose: '#F4D3DA', peony: '#EBC2CD', mauve: '#E8D3DF', apricot: '#F8DDD3', cream: '#F5EFE6' };
 // the loud side: strong, dark and electric colours for big shouting words
 const BOLDS = { night: '#0E0B14', violet: '#2D0358', cobalt: '#1D2BFF', red: '#E3262E', pink: '#FF2E88', tangerine: '#FF6A1A', acid: '#D7FF3A', forest: '#0B3D2E' };
 const LOUD_INKS = ['#FFFFFF', '#0E0B14', '#D7FF3A', '#FF2E88', '#FFE14D', '#FF6A1A', '#1D2BFF', '#6FF2FF'];
@@ -27,7 +29,7 @@ const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n
 const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 const bestInk = (bg, not = '') => LOUD_INKS.filter((c) => c !== not).sort((a, b) => contrast(b, bg) - contrast(a, bg))[0];
 let vibe = 'soft';
-try { vibe = localStorage.getItem('overleyz-vibe') === 'loud' ? 'loud' : 'soft'; } catch { /* private mode */ }
+try { vibe = ['loud', 'blush'].includes(localStorage.getItem('overleyz-vibe')) ? localStorage.getItem('overleyz-vibe') : 'soft'; } catch { /* private mode */ }
 const isPaper = (bg) => bg.kind === 'colors' || bg.kind === 'simple';
 const PAPER_TINT = '#F5ECDD';
 
@@ -55,6 +57,7 @@ const MOOD_FACE = {
   tired: ['su-melty-the-ice-cream-sandwich-calm', '#E4E1EE'], brave: ['su-crumbles-the-biscotti-resolute', '#F2D9CC'],
   wanderlust: ['su-glazy-the-doughnut-spinning', '#D6EBEC'], 'letting-go': ['su-crepe-suzette-red-relieved', '#E1ECDA'],
   growing: ['su-fudgy-mcsquares-eureka', '#DCEAD3'], friends: ['su-senor-churro-handshake', '#EEDDF0'],
+  calm: ['', '#DDF0F3'], anxious: ['', '#EEF0D2'], lonely: ['', '#E3E7EE'], proud: ['', '#E9E0FA'], excited: ['', '#FBDDD6'], nostalgic: ['', '#F2E5D7'],
 };
 function moodButton(key, label, big) {
   const b = document.createElement('button');
@@ -316,10 +319,31 @@ function hexA(hex, a) {
 }
 
 let pending = false;
+// ---------- caption & tags: filled in from the words, copied when sharing or saving (people can edit it) ----------
+const TAGS = '#leyzays #traveleyz #overleyz';
+let captionTouched = false;
+function captionText() {
+  const words = state.text.split(/\n|\s*\/\s*/).map((s) => s.trim()).filter(Boolean).join(' ');
+  const credit = state.creditOn && state.credit ? `\n— ${state.credit}` : '';
+  return `${words}${credit}\n\nmade at overleyz.art\n${TAGS}`;
+}
+function syncCaption() { if (!captionTouched) $('#caption').value = captionText(); }
+$('#caption').addEventListener('input', () => { captionTouched = true; });
+function copyCaption() {
+  syncCaption();
+  const text = $('#caption').value;
+  navigator.clipboard?.writeText(text).then(() => {
+    count('caption', 'copied');
+    $('#caption-status').textContent = 'Caption and tags copied — paste them in Instagram, TikTok or Facebook.';
+  }, () => { $('#caption-status').textContent = 'Copy the caption from “Caption & tags” below the picture.'; });
+  return text;
+}
+$('#caption-copy').addEventListener('click', copyCaption);
+
 function redraw() {
   if (pending) return;
   pending = true;
-  requestAnimationFrame(async () => { pending = false; await draw(null, true); save(); });
+  requestAnimationFrame(async () => { pending = false; await draw(null, true); save(); syncCaption(); });
 }
 
 // ---------- moving things on the picture ----------
@@ -424,6 +448,16 @@ function fill(grid, items, make, batch = 24) {
 }
 
 let bgSource = 'colors';
+// a one-line guide under the picture choices, so people know what each kind is
+function srcHint() {
+  const hints = {
+    colors: vibe === 'loud' ? 'Strong colour for big, loud words.' : 'Plain soft paper — your words are the star.',
+    simple: 'A little watercolour on paper. Tap it on the picture to move or resize it.',
+    backgrounds: 'Hand-painted leyzays scenes, with room for your words.',
+    photos: 'Real travel photos from @traveleyz — Kyoto to the Grand Canyon.',
+  };
+  $('#src-hint').textContent = hints[bgSource] || '';
+}
 // pictures for the chosen mood first; when a mood has only a few, the rest follow so the grid never looks empty
 function byMood(list) {
   if (!mood) return list;
@@ -444,7 +478,7 @@ function fitInk() {
   if (contrast(state.ink, behind) >= 3 && LOUD_INKS.includes(state.ink)) return false;
   state.ink = bestInk(behind); return true;
 }
-const palette = () => (vibe === 'loud' ? BOLDS : PAPERS);
+const palette = () => (vibe === 'loud' ? BOLDS : vibe === 'blush' ? BLUSHES : PAPERS);
 function pastelRow(grid, kind) {
   for (const [name, c] of Object.entries(palette())) {
     const b = document.createElement('button');
@@ -495,6 +529,7 @@ function renderBgGrid() {
 document.querySelectorAll('#tab-picture .subtabs button').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('#tab-picture .subtabs button').forEach((x) => x.setAttribute('aria-selected', x === b));
   bgSource = b.dataset.src;
+  srcHint();
   renderBgGrid();
 }));
 document.querySelectorAll('input[name=format]').forEach((r) => r.addEventListener('change', () => { state.format = r.value; redraw(); }));
@@ -583,7 +618,8 @@ function renderMoods() {
 }
 function surprise() {
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  const tunes = catalog.music.filter((m) => m.mood === mood);
+  const own = catalog.music.filter((m) => m.mood === mood);
+  const tunes = own.length ? own : catalog.music;   // a feeling without its own songs borrows any of them
   if (tunes.length) { state.music = pick(tunes).id; renderMusic(); }
   const qs = quoteMatches('');
   if (qs.length) useQuote(pick(qs));
@@ -700,17 +736,18 @@ function download(blob, name) {
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
-async function share(blob, name, type) {
+async function share(blob, name, type, text = $('#caption').value) {
   const file = new File([blob], name, { type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], text: '#leyzays · made at overleyz.art' }); return; }
+    try { await navigator.share({ files: [file], text }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
   download(blob, name);
 }
 const style = () => (FONTS[state.font].shout ? 'loud' : 'soft');
-$('#share-image').addEventListener('click', async () => { count('share', style()); share(await finalImage(), 'overleyz.jpg', 'image/jpeg'); });
-$('#save-image').addEventListener('click', async () => { count('save', style()); download(await finalImage(), 'overleyz.jpg'); });
+// the caption is copied first, while the tap still counts as the visitor's own action (phones require that)
+$('#share-image').addEventListener('click', async () => { const text = copyCaption(); count('share', style()); share(await finalImage(), 'overleyz.jpg', 'image/jpeg', text); });
+$('#save-image').addEventListener('click', async () => { copyCaption(); count('save', style()); download(await finalImage(), 'overleyz.jpg'); });
 
 let reelBlob = null, reelType = 'video/mp4';
 function pickMime(withAudio) {
@@ -798,8 +835,8 @@ $('#make-reel').addEventListener('click', async () => {
   btn.disabled = false;
   redraw();
 });
-$('#share-reel').addEventListener('click', () => { if (!reelBlob) return; count('share', style()); share(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`, reelType); });
-$('#save-reel').addEventListener('click', () => { if (!reelBlob) return; count('save', style()); download(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`); });
+$('#share-reel').addEventListener('click', () => { if (!reelBlob) return; copyCaption(); count('share', style()); share(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`, reelType); });
+$('#save-reel').addEventListener('click', () => { if (!reelBlob) return; copyCaption(); count('save', style()); download(reelBlob, `overleyz.${reelType === 'video/mp4' ? 'mp4' : 'webm'}`); });
 
 // ---------- send a note: the design travels in the link's #fragment (never sent to any server) ----------
 const b64 = {
@@ -823,7 +860,7 @@ function decodeNote(raw) {
   const ids = (k) => new Set(catalog[k].map((x) => x.id));
   const okBg = { backgrounds: ids('backgrounds'), photos: ids('photos'), simple: ids('simple') };
   const [kind, id, color] = Array.isArray(n.b) ? n.b : [];
-  const colors = new Set([...Object.values(PAPERS), ...Object.values(BOLDS), PAPER_TINT]);
+  const colors = new Set([...Object.values(PAPERS), ...Object.values(BLUSHES), ...Object.values(BOLDS), PAPER_TINT]);
   const bg = kind === 'colors' ? { kind, id: '', color: colors.has(color) ? color : PAPERS.blush }
     : okBg[kind]?.has(id) ? { kind, id, color: colors.has(color) ? color : PAPER_TINT } : defaults().bg;
   const stickerIds = ids('stickers');
@@ -900,7 +937,7 @@ function save() {
 function restore() {
   try { const s = JSON.parse(localStorage.getItem('overleyz-v2') || 'null'); if (s && FORMATS[s.format]) state = { ...defaults(), ...s }; } catch { /* ignore */ }
 }
-$('#reset').addEventListener('click', () => { state = defaults(); if (vibe === 'loud') loudPost(); selected = null; uploaded = null; syncSelTools(); bindWords(); renderBgGrid(); redraw(); });
+$('#reset').addEventListener('click', () => { state = defaults(); captionTouched = false; if (vibe === 'loud') loudPost(); selected = null; uploaded = null; syncSelTools(); bindWords(); renderBgGrid(); redraw(); });
 
 // ---------- Soft / Loud: the pastel studio, or a dark one with strong colours and huge shouting words ----------
 function loudPost() {
@@ -910,15 +947,18 @@ function loudPost() {
   fitInk();
 }
 function softPost() {
-  state.font = 'Kalam'; state.size = 72; state.ink = INKS[0]; state.ty = 0.14;
-  if (isPaper(state.bg)) state.bg = { kind: 'colors', id: '', color: PAPERS.blush };
+  state.font = 'Kalam'; state.size = 72; state.ink = vibe === 'blush' ? '#7A3B4C' : INKS[0]; state.ty = 0.14;   // rose ink in Blush
+  const paper = vibe === 'blush' ? BLUSHES.petal : PAPERS.blush;
+  if (state.bg.kind === 'simple') state.bg = { ...state.bg, color: paper };   // keep the watercolour, change the paper
+  else if (isPaper(state.bg)) state.bg = { kind: 'colors', id: '', color: paper };
 }
 function setVibe(v, restyle = true) {
   vibe = v;
   document.documentElement.dataset.vibe = v;
-  document.querySelector('meta[name=theme-color]').content = v === 'loud' ? '#0B0710' : '#FAFBFE';
+  document.querySelector('meta[name=theme-color]').content = v === 'loud' ? '#0B0710' : v === 'blush' ? '#FFF4F6' : '#FAFBFE';
   document.querySelectorAll('#vibe button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.vibe === v)));
-  $('#src-colors').textContent = v === 'loud' ? 'Bold colour' : 'Pastel paper';
+  $('#src-colors').textContent = v === 'loud' ? 'Bold colour' : v === 'blush' ? 'Pink paper' : 'Pastel paper';
+  srcHint();
   try { localStorage.setItem('overleyz-vibe', v); } catch { /* private mode */ }
   if (!restyle) return;
   if (v === 'loud') loudPost(); else softPost();

@@ -15,8 +15,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#FAFBFE">
 <link rel="icon" href="assets/icon.png">
-<link rel="stylesheet" href="app.css?v=20261011b">
-<script type="module" src="app.js?v=20261011b"></script>
+<link rel="stylesheet" href="app.css?v=20261011c">
+<script type="module" src="app.js?v=20261011c"></script>
 </head>
 <body>
 <svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -41,7 +41,7 @@
 <header class="top">
   <a class="brand" href="./" aria-label="overleyz home"><img class="logo-light" src="assets/logo.webp" alt="overleyz" width="459" height="120"><img class="logo-dark" src="assets/logo-dark.webp" alt="overleyz" width="459" height="120" loading="lazy"></a>
   <p class="tag">say how you feel — softly or loudly · by <a href="https://leyzays.webprvw.xyz" rel="noopener" target="_blank">leyzays</a></p>
-  <div class="vibe" id="vibe" role="group" aria-label="Studio style"><button type="button" data-vibe="soft" aria-pressed="true">Soft</button><button type="button" data-vibe="loud" aria-pressed="false">Loud</button></div>
+  <div class="vibe" id="vibe" role="group" aria-label="Studio style"><button type="button" data-vibe="soft" aria-pressed="true">Soft</button><button type="button" data-vibe="blush" aria-pressed="false">Blush</button><button type="button" data-vibe="loud" aria-pressed="false">Loud</button></div>
   <nav class="topnav"><a href="./" aria-current="page">Make a post</a><a href="about.html">About</a></nav>
 </header>
 
@@ -119,7 +119,13 @@
         <button type="button" class="action primary" id="share-reel" title="Share reel" aria-label="Share reel"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg></button>
       </div>
     </div>
-    <p class="fine hint">Share opens your apps — Instagram, Facebook, Messenger, Viber.</p>
+    <details class="caption-box">
+      <summary>Caption &amp; tags <span class="fine">copied for you when you share or save</span></summary>
+      <label class="sr" for="caption">Caption</label>
+      <textarea id="caption" rows="6" maxlength="2200"></textarea>
+      <button type="button" class="button ghost" id="caption-copy">Copy caption</button>
+    </details>
+    <p class="fine hint" id="caption-status" aria-live="polite">Share opens your apps — Instagram, Facebook, Messenger, Viber. Your caption and tags are copied, so just paste.</p>
   </section>
 
   <section class="panel">
@@ -129,37 +135,46 @@
       <button type="button" class="icon-btn big" id="surprise" title="Surprise me" aria-label="Surprise me"><svg class="ic" aria-hidden="true"><use href="#i-sparkle"/></svg></button>
     </div>
     <nav class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="picture" title="Picture" aria-label="Picture"><svg class="ic" aria-hidden="true"><use href="#i-picture"/></svg></button>
-      <button role="tab" aria-selected="false" data-tab="words" title="Words" aria-label="Words"><svg class="ic" aria-hidden="true"><use href="#i-words"/></svg></button>
-      <button role="tab" aria-selected="false" data-tab="stickers" title="Stickers" aria-label="Stickers"><svg class="ic" aria-hidden="true"><use href="#i-sticker"/></svg></button>
+      <button role="tab" aria-selected="true" data-tab="picture" title="Picture" aria-label="Picture"><svg class="ic" aria-hidden="true"><use href="#i-picture"/></svg><span aria-hidden="true">Picture</span></button>
+      <button role="tab" aria-selected="false" data-tab="words" title="Words" aria-label="Words"><svg class="ic" aria-hidden="true"><use href="#i-words"/></svg><span aria-hidden="true">Words</span></button>
+      <button role="tab" aria-selected="false" data-tab="stickers" title="Stickers" aria-label="Stickers"><svg class="ic" aria-hidden="true"><use href="#i-sticker"/></svg><span aria-hidden="true">Stickers</span></button>
     </nav>
 
     <div class="tab" id="tab-picture">
+      <h3 class="step"><span>1</span> Choose a shape</h3>
+      <p class="fine guide">Post for your Instagram feed, Square for anywhere, Story / Reel for full-screen.</p>
       <div class="row formats" role="radiogroup" aria-label="Format">
         <label><input type="radio" name="format" value="post" checked> Post 4:5</label>
         <label><input type="radio" name="format" value="square"> Square</label>
         <label><input type="radio" name="format" value="story"> Story / Reel 9:16</label>
       </div>
+      <h3 class="step"><span>2</span> Pick a picture</h3>
       <div class="row">
         <label class="upload icon-btn big" title="Use my own photo" aria-label="Use my own photo"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg><input type="file" id="upload" accept="image/*" hidden></label>
-        <span class="fine">Stays on your device — never uploaded.</span>
+        <span class="fine"><strong>Use your own photo</strong><br>It stays on your device — never uploaded.</span>
       </div>
+      <p class="fine guide">…or choose one of ours:</p>
       <div class="subtabs" role="tablist">
         <button data-src="colors" id="src-colors" aria-selected="true">Pastel paper</button>
         <button data-src="simple" aria-selected="false">Simple</button>
         <button data-src="backgrounds" aria-selected="false">Paintings</button>
         <button data-src="photos" aria-selected="false">Travel photos</button>
       </div>
+      <p class="fine guide" id="src-hint" aria-live="polite">Plain soft paper — your words are the star.</p>
       <div class="grid" id="bg-grid"></div>
+      <p class="fine guide">Next: tap <strong>Words</strong> above to write your note.</p>
     </div>
 
     <div class="tab" id="tab-words" hidden>
+      <h3 class="step"><span>3</span> Write your note</h3>
+      <p class="fine guide">Type your own, or borrow one from the list further down. Use / or Enter for a new line.</p>
       <label class="block">Your words
         <textarea id="text" rows="3" maxlength="220" placeholder="Type your note… (Enter = new line)"></textarea>
       </label>
       <label class="block">Underline a phrase <span class="fine">optional — must match words above</span>
         <input type="text" id="underline" maxlength="80">
       </label>
+      <h3 class="step"><span>4</span> Make it yours</h3>
       <div class="row">
         <label>Lettering
           <select id="font">
@@ -181,6 +196,7 @@
       </div>
       <p class="fine">Drag the words on the picture to move them.</p>
       <label class="check"><input type="checkbox" id="credit-on" checked> Show who said it</label>
+      <h3 class="step"><span>5</span> Need words?</h3>
       <details class="quotes" open>
         <summary>Borrow a quote <span class="fine" id="q-count"></span></summary>
         <div class="subtabs" id="q-src">
@@ -194,6 +210,8 @@
     </div>
 
     <div class="tab" id="tab-stickers" hidden>
+      <h3 class="step"><span>6</span> Add a few stickers</h3>
+      <p class="fine guide">Optional — the Sugar Valley friends, journal doodles, seasons and still life.</p>
       <div class="subtabs" id="st-groups" role="tablist"></div>
       <div class="grid stickers" id="st-grid"></div>
       <p class="fine">Tap to add. Drag to move; use Size and Turn under the picture.</p>
