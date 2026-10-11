@@ -24,7 +24,7 @@ if (empty($_SESSION['admin']) && ($_POST['action'] ?? '') === 'login') {
     $fails = is_file($failFile) ? (json_decode((string) file_get_contents($failFile), true) ?: []) : [];
     if (($fails['until'] ?? 0) > time()) {
         $error = 'Too many tries. Please wait 15 minutes.';
-    } elseif (is_file($hashFile) && password_verify((string) ($_POST['password'] ?? ''), trim((string) file_get_contents($hashFile)))) {
+    } elseif (is_file($hashFile) && password_verify(trim((string) ($_POST['password'] ?? '')), trim((string) file_get_contents($hashFile)))) {
         session_regenerate_id(true);
         $_SESSION['admin'] = true;
         $_SESSION['csrf'] = bin2hex(random_bytes(16));
@@ -50,7 +50,7 @@ if (empty($_SESSION['admin'])) {
 <main class="login">
   <form method="post" autocomplete="off">
     <h1>Sign in</h1>
-    <label>Password <input type="password" name="password" required autofocus autocomplete="current-password"></label>
+    <label>Password <input type="password" name="password" required autofocus autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
     <input type="hidden" name="action" value="login">
     <?php if ($error): ?><p class="error"><?= $h($error) ?></p><?php endif; ?>
     <button type="submit">Open dashboard</button>
