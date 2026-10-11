@@ -193,7 +193,9 @@ def fonts():
     src = {"Kalam-Light.ttf": IGQ / "fonts/Kalam-Light.ttf", "Caveat-VF.ttf": IGQ / "fonts/Caveat-VF.ttf",
            "NanumPenScript-Regular.ttf": HOME / "leyzays-brand/fonts/NanumPenScript-Regular.ttf",
            "Newsreader-Italic.ttf": HOME / "leyzays-brand/fonts/Newsreader-Italic.ttf",
-           "Poppins-SemiBold.ttf": HOME / "Library/Fonts/Poppins-SemiBold.ttf"}
+           "Poppins-SemiBold.ttf": HOME / "Library/Fonts/Poppins-SemiBold.ttf",
+           "Poppins-Regular.ttf": HOME / "Library/Fonts/Poppins-Regular.ttf",
+           "Poppins-Bold.ttf": HOME / "Library/Fonts/Poppins-Bold.ttf"}
     d = OUT / "fonts"
     d.mkdir(parents=True, exist_ok=True)
     for name, f in src.items():

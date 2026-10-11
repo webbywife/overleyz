@@ -13,7 +13,7 @@
 <meta property="og:image" content="https://overleyz.art/assets/og.jpg">
 <meta property="og:url" content="https://overleyz.art/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#EEE7EA">
+<meta name="theme-color" content="#FAFBFE">
 <link rel="icon" href="assets/icon.png">
 <link rel="stylesheet" href="app.css">
 <script type="module" src="app.js"></script>
@@ -39,14 +39,14 @@
   <symbol id="i-turn" viewBox="0 0 32 32"><path d="M25 16a9 9 0 1 1-3-6.7"/><path d="M26 5v6h-6"/></symbol>
 </svg>
 <header class="top">
-  <a class="brand" href="./">overleyz</a>
+  <a class="brand" href="./" aria-label="overleyz home"><picture><source srcset="assets/logo-dark.webp" media="(prefers-color-scheme: dark)"><img src="assets/logo.webp" alt="overleyz" width="459" height="120"></picture></a>
   <p class="tag">notes on pictures · by <a href="https://leyzays.webprvw.xyz" rel="noopener" target="_blank">leyzays</a></p>
   <nav class="topnav"><a href="./" aria-current="page">Make a post</a><a href="about.html">About</a></nav>
 </header>
 
 <section class="welcome" id="welcome" hidden aria-labelledby="welcome-q">
   <p class="welcome-hi" id="welcome-hi">Hello there,</p>
-  <h1 id="welcome-q">How are you today?</h1>
+  <h1 id="welcome-q">How are you <em>today?</em></h1>
   <p class="fine">Pick the friend who feels like you right now. We’ll find words, a picture and music to match.</p>
   <div class="mood-cards" id="welcome-moods"></div>
   <div class="calendar">
@@ -87,9 +87,9 @@
 
 <main class="studio">
   <section class="stage" aria-label="Preview">
-    <div class="polaroid">
+    <div class="frame">
       <canvas id="canvas" width="1080" height="1350" aria-label="Your post preview — drag the text and stickers to move them"></canvas>
-      <p class="polaroid-cap">today’s little note</p>
+      <p class="frame-cap">today’s little note</p>
     </div>
     <div class="stage-tools" id="sel-tools" hidden>
       <label title="Size"><svg class="ic" aria-hidden="true"><use href="#i-size"/></svg><span class="sr">Size</span> <input type="range" id="sel-size" min="0.2" max="3" step="0.01"></label>

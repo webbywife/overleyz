@@ -127,7 +127,7 @@ async function draw(t = null) {
       const ax = (state.bg.ax ?? 0.5) * W, ay = (state.bg.ay ?? 0.80) * H;   // centre-x, bottom edge
       ctx.drawImage(art, ax - w / 2, ay - h, w, h);
       boxes.art = { x: ax - w / 2, y: ay - h, w, h };
-      if (selected === 'art' && t === null) { ctx.setLineDash([10, 8]); ctx.strokeStyle = '#B5737C'; ctx.lineWidth = 3; ctx.strokeRect(ax - w / 2 - 6, ay - h - 6, w + 12, h + 12); ctx.setLineDash([]); }
+      if (selected === 'art' && t === null) { ctx.setLineDash([10, 8]); ctx.strokeStyle = '#A43C82'; ctx.lineWidth = 3; ctx.strokeRect(ax - w / 2 - 6, ay - h - 6, w + 12, h + 12); ctx.setLineDash([]); }
     }
   } catch { /* keep the paper colour */ }
 
@@ -205,14 +205,14 @@ async function draw(t = null) {
       if (t !== null && s.id.startsWith('su-')) { bob = Math.sin(t * 3.2 + i) * H * 0.008; sway = Math.sin(t * 2.1 + i) * 3; }   // Sugar Valley friends bounce a little
       ctx.save(); ctx.translate(s.x * W, s.y * H + bob); ctx.rotate((s.rot + sway) * Math.PI / 180);
       ctx.drawImage(img, -w / 2, -h / 2, w, h);
-      if (selected === i && t === null) { ctx.setLineDash([10, 8]); ctx.strokeStyle = '#B5737C'; ctx.lineWidth = 3; ctx.strokeRect(-w / 2 - 6, -h / 2 - 6, w + 12, h + 12); }
+      if (selected === i && t === null) { ctx.setLineDash([10, 8]); ctx.strokeStyle = '#A43C82'; ctx.lineWidth = 3; ctx.strokeRect(-w / 2 - 6, -h / 2 - 6, w + 12, h + 12); }
       ctx.restore();
       s._w = w; s._h = h;
     } catch { /* skip a missing sticker */ }
   }
   if (selected === 'text' && t === null) {
     const b = boxes.text;
-    ctx.setLineDash([10, 8]); ctx.strokeStyle = '#B5737C'; ctx.lineWidth = 3; ctx.strokeRect(b.x, b.y, b.w, b.h); ctx.setLineDash([]);
+    ctx.setLineDash([10, 8]); ctx.strokeStyle = '#A43C82'; ctx.lineWidth = 3; ctx.strokeRect(b.x, b.y, b.w, b.h); ctx.setLineDash([]);
   }
   ctx.setLineDash([]);
 
@@ -810,7 +810,7 @@ $('#reset').addEventListener('click', () => { state = defaults(); selected = nul
   catalog = await (await fetch('assets/catalog.json')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
   if (hash) {
-    try { await reveal(decodeNote(hash)); scene(catalog.photos); return; } catch { history.replaceState(null, '', location.pathname); }
+    try { await reveal(decodeNote(hash)); scene(); return; } catch { history.replaceState(null, '', location.pathname); }
   }
   if (!state.bg.id && state.bg.kind === 'backgrounds') state.bg.id = catalog.backgrounds.find((b) => b.id.includes('life'))?.id || catalog.backgrounds[0]?.id || '';
   document.querySelector(`input[name=format][value=${state.format}]`).checked = true;
@@ -820,5 +820,5 @@ $('#reset').addEventListener('click', () => { state = defaults(); selected = nul
   try { asked = localStorage.getItem('overleyz-asked') || ''; } catch { /* private mode */ }
   if (asked !== today()) showWelcome();   // once a day
   redraw();
-  (window.requestIdleCallback || setTimeout)(() => scene(catalog.photos));   // scrapbook background, after the studio is ready
+  (window.requestIdleCallback || setTimeout)(() => scene());   // floating planes behind the page, after the studio is ready
 })();
