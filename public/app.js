@@ -28,8 +28,9 @@ const isBold = (c) => Object.values(BOLDS).includes(c);
 const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255].map((v) => { v /= 255; return v <= 0.04 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0); };
 const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 const bestInk = (bg, not = '') => LOUD_INKS.filter((c) => c !== not).sort((a, b) => contrast(b, bg) - contrast(a, bg))[0];
-let vibe = 'soft';
-try { vibe = ['loud', 'blush'].includes(localStorage.getItem('overleyz-vibe')) ? localStorage.getItem('overleyz-vibe') : 'soft'; } catch { /* private mode */ }
+// Loud is the default. Only a style the visitor picked is remembered (the old key saved Soft for everyone, so a stored 'soft' there is ignored).
+let vibe = 'loud';
+try { const v = localStorage.getItem('overleyz-style') || localStorage.getItem('overleyz-vibe'); if (['blush', 'loud'].includes(v) || (v === 'soft' && localStorage.getItem('overleyz-style'))) vibe = v; } catch { /* private mode */ }
 const isPaper = (bg) => bg.kind === 'colors' || bg.kind === 'simple';
 const PAPER_TINT = '#F5ECDD';
 
@@ -132,7 +133,9 @@ async function draw(t = null, quick = false) {
     if (state.bg.kind === 'upload' && uploaded) cover(uploaded, W, H, zoom);
     else if (src && state.bg.id && quick && !ready.has(src)) {
       load(src).then(redraw, () => {});
-      cover(await load(src.replace(/\/([^/]+)$/, '/t/$1')), W, H, zoom);
+      const thumb = src.replace(/\/([^/]+)$/, '/t/$1');
+      if (ready.has(thumb)) cover(await load(thumb), W, H, zoom);
+      else load(thumb).then(redraw, () => {});   // slow line: show the words on paper now, the picture when it lands
     } else if (src && state.bg.id) cover(await load(src), W, H, zoom);
     if (isPaper(state.bg) && !isBold(state.bg.color)) await paperTexture(W, H);
     if (state.bg.kind === 'simple' && state.bg.id) {
@@ -959,8 +962,8 @@ function setVibe(v, restyle = true) {
   document.querySelectorAll('#vibe button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.vibe === v)));
   $('#src-colors').textContent = v === 'loud' ? 'Bold colour' : v === 'blush' ? 'Pink paper' : 'Pastel paper';
   srcHint();
-  try { localStorage.setItem('overleyz-vibe', v); } catch { /* private mode */ }
   if (!restyle) return;
+  try { localStorage.setItem('overleyz-style', v); localStorage.setItem('overleyz-vibe', v); } catch { /* private mode */ }
   if (v === 'loud') loudPost(); else softPost();
   document.fonts.load(FONTS[state.font].css.replace('{s}', 40)).catch(() => {}).then(() => { bindWords(); renderBgGrid(); redraw(); });
 }
@@ -970,6 +973,7 @@ document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('cli
 (async () => {
   restore();
   setVibe(vibe, false);
+  if (vibe === 'loud' && !FONTS[state.font]?.shout) loudPost();   // first visit, or a design saved in Soft
   catalog = await (await fetch('assets/catalog.json')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
   visit(hash ? 'note' : 'studio');
