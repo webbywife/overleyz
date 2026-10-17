@@ -451,3 +451,23 @@ html, body { overflow-x: clip; }   /* the slanted plane behind the picture may p
 /* the new feelings on the month calendar */
 .month .m-calm { --mc: #DDF0F3; } .month .m-anxious { --mc: #EEF0D2; } .month .m-lonely { --mc: #E3E7EE; }
 .month .m-proud { --mc: #E9E0FA; } .month .m-excited { --mc: #FBDDD6; } .month .m-nostalgic { --mc: #F2E5D7; }
+
+/* bigger month calendar (Lea, 17 Oct 2026) */
+.calendar { padding: 22px 24px 14px; border-radius: 24px; }
+.cal-head { margin-bottom: 14px; }
+.cal-head h2 { font-size: 1.45rem; }
+.cal-head .icon-btn { width: 42px; height: 42px; font-size: 1.45rem; }
+.month { grid-template-columns: repeat(7, 52px); gap: 8px; }
+.month b { font-size: .8rem; }
+.month i, .month span.day { width: 52px; height: 52px; }
+.month span.day { border-radius: 15px; font-size: .95rem; }
+.month span.day .smiley { width: 44px; height: 44px; }
+#month-count { font-size: .95rem; margin-top: 12px; }
+[data-vibe="loud"] .cal-head h2 { font-size: 2rem; }
+@media (max-width: 480px) {
+  .calendar { padding: 16px 12px 10px; }
+  .month { grid-template-columns: repeat(7, 40px); gap: 5px; }
+  .month i, .month span.day { width: 40px; height: 40px; }
+  .month span.day { border-radius: 12px; font-size: .85rem; }
+  .month span.day .smiley { width: 34px; height: 34px; }
+}
