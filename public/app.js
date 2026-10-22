@@ -13,8 +13,14 @@ const FONTS = {
   Nanum: { css: '{s}px Nanum', scale: 1.25, lead: 1.1 },
   Newsreader: { css: 'italic {s}px Newsreader', scale: 0.92, lead: 1.3 },
   Poppins: { css: '600 {s}px Poppins', scale: 0.78, lead: 1.35 },
+  Script: { css: '500 {s}px DancingScript', scale: 1.1, lead: 1.2 },
+  Playfair: { css: 'italic 500 {s}px Playfair', scale: 0.9, lead: 1.3 },
+  Tiny: { css: '700 {s}px Amatic', scale: 1.45, lead: 1.1 },
+  Schoolbook: { css: '{s}px Architect', scale: 0.88, lead: 1.3 },
   Anton: { css: '{s}px Anton', shout: true },              // loud: tall poster capitals
   Heavy: { css: '900 {s}px Montserrat', shout: true },     // loud: wide, heavy capitals
+  Bebas: { css: '{s}px Bebas', shout: true },              // loud: condensed poster capitals
+  Marker: { css: '{s}px Marker', shout: true },            // loud: rough marker capitals
 };
 const INKS = ['#3D2A33', '#2F2030', '#FFFFFF', '#7A3B4C', '#2E4A3F', '#2D3E5C', '#8A5A2B'];
 // the leyzays "simple" pastels (simple_style.py) + the cream of the illustrated posts
@@ -331,7 +337,7 @@ const capKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 function loadCaps() {
   if (CAPS) return;
   CAPS = {};
-  fetch('assets/captions.json?v=20261023b').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
+  fetch('assets/captions.json?v=20261023c').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
 }
 function captionText() {
   const words = state.text.split(/\n|\s*\/\s*/).map((s) => s.trim()).filter(Boolean).join(' ');
@@ -994,7 +1000,7 @@ document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('cli
   restore();
   setVibe(vibe, false);
   if (vibe === 'loud' && !FONTS[state.font]?.shout) loudPost();   // first visit, or a design saved in Soft
-  catalog = await (await fetch('assets/catalog.json?v=20261023b')).json();
+  catalog = await (await fetch('assets/catalog.json?v=20261023c')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
   visit(hash ? 'note' : 'studio');
   if (hash) {

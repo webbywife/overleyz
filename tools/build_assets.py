@@ -236,7 +236,13 @@ def fonts():
            "Poppins-Regular.ttf": HOME / "Library/Fonts/Poppins-Regular.ttf",
            "Poppins-Bold.ttf": HOME / "Library/Fonts/Poppins-Bold.ttf",
            "Anton-Regular.ttf": ROOT / "tools/brand/fonts/Anton-Regular.ttf",
-           "Montserrat-Black.otf": HOME / "Library/Fonts/Montserrat-Black.otf"}
+           "Montserrat-Black.otf": HOME / "Library/Fonts/Montserrat-Black.otf",
+           "DancingScript-VF.ttf": ROOT / "tools/brand/fonts/DancingScript[wght].ttf",
+           "PlayfairDisplay-Italic-VF.ttf": ROOT / "tools/brand/fonts/PlayfairDisplay-Italic[wght].ttf",
+           "AmaticSC-Bold.ttf": ROOT / "tools/brand/fonts/AmaticSC-Bold.ttf",
+           "ArchitectsDaughter-Regular.ttf": ROOT / "tools/brand/fonts/ArchitectsDaughter-Regular.ttf",
+           "BebasNeue-Regular.ttf": ROOT / "tools/brand/fonts/BebasNeue-Regular.ttf",
+           "PermanentMarker-Regular.ttf": ROOT / "tools/brand/fonts/PermanentMarker-Regular.ttf"}
     d = OUT / "fonts"
     d.mkdir(parents=True, exist_ok=True)
     for name, f in src.items():

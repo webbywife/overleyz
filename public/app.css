@@ -7,6 +7,12 @@
 @font-face { font-family: Poppins; src: url(assets/fonts/Poppins-Bold.woff2) format('woff2'); font-weight: 700; font-display: swap; }
 @font-face { font-family: Anton; src: url(assets/fonts/Anton-Regular.woff2) format('woff2'); font-display: swap; }
 @font-face { font-family: Montserrat; src: url(assets/fonts/Montserrat-Black.woff2) format('woff2'); font-weight: 900; font-display: swap; }
+@font-face { font-family: DancingScript; src: url(assets/fonts/DancingScript-VF.woff2) format('woff2'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: Playfair; src: url(assets/fonts/PlayfairDisplay-Italic-VF.woff2) format('woff2'); font-style: italic; font-weight: 400 900; font-display: swap; }
+@font-face { font-family: Amatic; src: url(assets/fonts/AmaticSC-Bold.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: Architect; src: url(assets/fonts/ArchitectsDaughter-Regular.woff2) format('woff2'); font-display: swap; }
+@font-face { font-family: Bebas; src: url(assets/fonts/BebasNeue-Regular.woff2) format('woff2'); font-display: swap; }
+@font-face { font-family: Marker; src: url(assets/fonts/PermanentMarker-Regular.woff2) format('woff2'); font-display: swap; }
 
 :root {
   --mist: #EEE7EA; --mist-deep: #DCCFD5; --paper: #FFFDF9; --plum: #2F2030; --plum-soft: #6B5866; --rose: #B5737C;
