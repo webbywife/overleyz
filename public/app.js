@@ -337,7 +337,7 @@ const capKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 function loadCaps() {
   if (CAPS) return;
   CAPS = {};
-  fetch('assets/captions.json?v=20261023c').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
+  fetch('assets/captions.json?v=20261023d').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
 }
 function captionText() {
   const words = state.text.split(/\n|\s*\/\s*/).map((s) => s.trim()).filter(Boolean).join(' ');
@@ -726,6 +726,7 @@ $('#open-checkin').addEventListener('click', showWelcome);
 $('#q-search').addEventListener('input', (e) => renderQuotes(e.target.value));
 
 let stGroup = 'Sugar Valley';
+$('#st-search').addEventListener('input', () => renderStickers());
 function renderStickers() {
   const groups = [...new Set(catalog.stickers.map((s) => s.group))].sort((a, b) => (b === 'Sugar Valley') - (a === 'Sugar Valley'));
   const gEl = $('#st-groups');
@@ -738,7 +739,12 @@ function renderStickers() {
   }
   const grid = $('#st-grid');
   grid.replaceChildren();
-  let list = catalog.stickers.filter((x) => x.group === stGroup);
+  // a search looks through every group at once; every word typed must match (name, group, feeling or search words)
+  const words = $('#st-search').value.toLowerCase().split(/\s+/).filter(Boolean);
+  const hay = (x) => `${x.name || ''} ${x.k || ''} ${x.group} ${catalog.moods[x.mood] || ''}`.toLowerCase();
+  let list = words.length ? catalog.stickers.filter((x) => words.every((w) => hay(x).includes(w))) : catalog.stickers.filter((x) => x.group === stGroup);
+  gEl.hidden = words.length > 0;
+  if (words.length && !list.length) { const none = document.createElement('p'); none.className = 'fine'; none.textContent = 'No stickers match — try a simpler word.'; grid.append(none); return; }
   if (mood && list.some((x) => x.mood === mood)) list = [...list.filter((x) => x.mood === mood), ...list.filter((x) => x.mood !== mood)];
   fill(grid, list, (s) => {
     const b = document.createElement('button');
@@ -1000,7 +1006,7 @@ document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('cli
   restore();
   setVibe(vibe, false);
   if (vibe === 'loud' && !FONTS[state.font]?.shout) loudPost();   // first visit, or a design saved in Soft
-  catalog = await (await fetch('assets/catalog.json?v=20261023c')).json();
+  catalog = await (await fetch('assets/catalog.json?v=20261023d')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
   visit(hash ? 'note' : 'studio');
   if (hash) {

@@ -6,7 +6,7 @@
 Sources: ~/ig-quotes/blank-full (text-free paintings), travel photos (travel_plan + auto_plan), sticker cut-outs
 (journal web/, planner stickers, simple-style vignettes), 454 quotes from the leyzays site, fonts.
 """
-import json, os, shutil, sys
+import json, os, re, shutil, sys
 from pathlib import Path
 from PIL import Image, ImageOps
 
@@ -135,6 +135,25 @@ def grain():
     Image.fromarray(np.dstack([rgb, alpha])).save(p, "WEBP", quality=70)
 
 
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def sticker_words(group, f):
+    """What a sticker is called + a few extra search words, so the sticker search finds it."""
+    if group == "Journal":
+        return {"name": re.sub(r"[-_ ]?\d+$", "", f.stem).replace("-", " ").title(), "k": "journal doodle"}
+    if group == "Seasons":
+        return {"name": MONTHS[int(f.parent.name) - 1], "k": "season month planner"}
+    if group == "Still life":
+        import generate as g
+        num = int(f.stem.split("-")[0])
+        return {"name": g.POSTS[num - 1][0].title() if 0 < num <= len(g.POSTS) else "Still life", "k": "still life watercolour"}
+    if group == "Little paintings":
+        _, mood, note = local_art()[f.stem]
+        return {"name": f.stem.replace("-", " ").title(), "k": f"{mood.replace('-', ' ')} {' '.join(note.replace('/', ' ').split())}".lower()}
+    return {}
+
+
 def stickers():
     groups = {
         "Journal": sorted((HOME / "leyzays-brand/journal/web").glob("*.png")),
@@ -163,6 +182,7 @@ def stickers():
             if not t.exists():
                 save(Image.open(p).convert("RGBA"), t, 200, quality=78)
             item = {"id": key, "group": group}
+            item.update(sticker_words(group, f))
             if group == "Sugar Valley":
                 pose = f.stem.rsplit("-", 1)[-1]
                 item["mood"] = POSE_MOOD.get(pose, "")
