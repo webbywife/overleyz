@@ -3,3 +3,4 @@ node_modules/
 __pycache__/
 tools/test/undefined/
 overleyz-data/
+tools/local-art/

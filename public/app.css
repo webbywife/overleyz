@@ -471,3 +471,8 @@ html, body { overflow-x: clip; }   /* the slanted plane behind the picture may p
   .month span.day { border-radius: 12px; font-size: .85rem; }
   .month span.day .smiley { width: 34px; height: 34px; }
 }
+
+.pair-note { display: block; width: 100%; margin: 0 0 10px; padding: 10px 12px; border: 1px dashed var(--berry, #A43C82); border-radius: 12px;
+  background: transparent; color: inherit; font: inherit; font-size: .9rem; text-align: left; cursor: pointer; }
+.pair-note:hover, .pair-note:focus-visible { background: rgba(164, 60, 130, .08); }
+.pair-note[hidden] { display: none; }

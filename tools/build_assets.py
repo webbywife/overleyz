@@ -6,7 +6,7 @@
 Sources: ~/ig-quotes/blank-full (text-free paintings), travel photos (travel_plan + auto_plan), sticker cut-outs
 (journal web/, planner stickers, simple-style vignettes), 454 quotes from the leyzays site, fonts.
 """
-import json, shutil, sys
+import json, os, shutil, sys
 from pathlib import Path
 from PIL import Image, ImageOps
 
@@ -93,12 +93,31 @@ POSE_MOOD = {
 def simple():
     """The leyzays 'simple' style: watercolour vignettes that sit on pastel paper (cut-outs reused from stickers)."""
     import generate as g   # ~/ig-quotes: post number → theme
+    import simple_style as ss
+    ss.jobs_from_content()
+    lines = ss.LINES
     out = []
     for f in sorted((IGQ / "simple").glob("*-vignette.png")):
         num = int(f.stem.split("-")[0])
         theme = g.POSTS[num - 1][0] if 0 < num <= len(g.POSTS) else ""
-        out.append({"id": f"st-{f.stem}", "theme": theme, "mood": mood_of(theme)})
+        item = {"id": f"st-{f.stem}", "theme": theme, "mood": mood_of(theme)}
+        if num in lines:
+            item["q"] = lines[num]   # the note that was written for this still life
+        out.append(item)
+    for name, (_, m, note) in local_art().items():
+        out.append({"id": f"li-{name}", "theme": name.replace("-", " "), "mood": m, "q": note})
     return out
+
+
+def local_art():
+    """Vignettes painted locally by tools/local_vignettes.py (Draw Things): name → (file, mood, note)."""
+    from local_vignettes import IDEAS, OUT as ART
+    from symbols import SYMBOLS
+    from symbols2 import SYMBOLS as SYMBOLS2
+    ideas = {k: v for k, v in IDEAS.items() if k != "suitcase"}   # the 22 Lea approved (suitcase has a stray signature)
+    if os.environ.get("ALL_ART"):
+        ideas = {**IDEAS, **SYMBOLS, **SYMBOLS2}
+    return {k: (ART / f"{k}.png", m, n) for k, (_, m, n) in ideas.items() if (ART / f"{k}.png").exists()}
 
 
 def grain():
@@ -122,6 +141,7 @@ def stickers():
         "Journal": sorted((HOME / "leyzays-brand/journal/web").glob("*.png")),
         "Seasons": sorted((HOME / "leyzays/resources/planner/stickers").glob("*/*.png")),
         "Still life": sorted((IGQ / "simple").glob("*-vignette.png")),
+        "Little paintings": [f for f, _, _ in local_art().values()],
         "Sugar Valley": sorted(f for f in (HOME / "Desktop/0326/sweetestlovers/public/images/characters").glob("*.webp")
                                if f.stem not in SKIP),
     }
@@ -131,7 +151,7 @@ def stickers():
             key = f"{group[:2].lower()}-{f.parent.name}-{f.stem}" if group == "Seasons" else f"{group[:2].lower()}-{f.stem}"
             im = None
             p = OUT / "sticker" / f"{key}.webp"
-            if not p.exists() and group == "Still life":
+            if not p.exists() and group in ("Still life", "Little paintings"):
                 import simple_style   # ~/ig-quotes: keys the watercolour off its paper, like the simple posts do
                 save(simple_style.cut_out(f), p, 600, quality=82)
             if not p.exists():
@@ -167,6 +187,9 @@ def quotes():
     for q, t in pairs:
         if q and key(q) not in seen:
             seen.add(key(q)); out.append({"q": q, "t": t, "m": mood_of(t), "by": "leyzays"})
+    for name, (_, m, note) in local_art().items():
+        if key(note) not in seen:
+            seen.add(key(note)); out.append({"q": note, "t": name.replace("-", " "), "m": m, "by": "leyzays"})
     for m, notes in NOTES.items():
         for q in notes:
             if key(q) not in seen:
@@ -223,8 +246,23 @@ def fonts():
             webfont(f, out)
 
 
+def captions():
+    """The original leyzays Instagram caption (story + question) for each note, keyed by the note's letters only."""
+    posts = json.loads((HOME / "leyzays/database/data/posts.json").read_text())
+    key = lambda q: "".join(ch for ch in q.lower() if ch.isalnum())
+    out = {}
+    for p in posts:
+        body = "\n".join(ln for ln in p.get("instagram_caption", "").splitlines() if ln.strip() and not ln.strip().startswith("#"))
+        body = body.split("\n", 1)[1].strip() if "\n" in body else ""   # first line repeats the note; keep the story + question
+        if body:
+            out[key(p["quote"])] = body
+    (OUT / "captions.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    return len(out)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    print("captions:", captions())
     fonts()
     grain()
     cat = {"moods": MOODS, "music": music(), "simple": simple(), "backgrounds": backgrounds(), "photos": photos(), "stickers": stickers(),

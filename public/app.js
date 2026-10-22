@@ -325,12 +325,21 @@ let pending = false;
 // ---------- caption & tags: filled in from the words, copied when sharing or saving (people can edit it) ----------
 const TAGS = '#leyzays #traveleyz #overleyz';
 let captionTouched = false;
+// leyzays notes bring their own Instagram caption (the story + a question); loaded once, only when a caption is needed
+let CAPS = null;
+const capKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+function loadCaps() {
+  if (CAPS) return;
+  CAPS = {};
+  fetch('assets/captions.json').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
+}
 function captionText() {
   const words = state.text.split(/\n|\s*\/\s*/).map((s) => s.trim()).filter(Boolean).join(' ');
   const credit = state.creditOn && state.credit ? `\n— ${state.credit}` : '';
-  return `${words}${credit}\n\nmade at overleyz.art\n${TAGS}`;
+  const story = !state.credit && CAPS && CAPS[capKey(words)];
+  return `${words}${credit}${story ? `\n\n${story}` : ''}\n\nmade at overleyz.art\n${TAGS}`;
 }
-function syncCaption() { if (!captionTouched) $('#caption').value = captionText(); }
+function syncCaption() { loadCaps(); if (!captionTouched) $('#caption').value = captionText(); }
 $('#caption').addEventListener('input', () => { captionTouched = true; });
 function copyCaption() {
   syncCaption();
@@ -452,6 +461,13 @@ function fill(grid, items, make, batch = 24) {
 
 let bgSource = 'colors';
 // a one-line guide under the picture choices, so people know what each kind is
+// a painting that comes with its own note: offer to write it, never overwrite what the visitor typed
+function pairNote() {
+  const b = $('#pair-note'), it = state.bg.kind === 'simple' && catalog.simple.find((x) => x.id === state.bg.id);
+  const q = it && it.q;
+  b.hidden = !q || state.text === q;
+  if (q) { b.textContent = `Add the note that goes with it: “${q.replace(/\s*\/\s*/g, ' ')}”`; b.onclick = () => { useQuote({ q, by: 'leyzays' }); pairNote(); }; }
+}
 function srcHint() {
   const hints = {
     colors: vibe === 'loud' ? 'Strong colour for big, loud words.' : 'Plain soft paper — your words are the star.',
@@ -472,7 +488,7 @@ function setBg(bg) {
   state.bg = bg;
   if (isPaper(bg) !== wasPaper) { state.paper = !isPaper(bg); bindWords(); }   // soft paper band only over pictures
   if (fitInk()) bindWords();
-  renderBgGrid(); redraw();
+  renderBgGrid(); redraw(); pairNote();
 }
 // loud words always stay readable: pick the strongest ink for the colour behind them
 function fitInk() {
@@ -628,7 +644,11 @@ function surprise() {
   if (qs.length) useQuote(pick(qs));
   const pool = ['simple', 'backgrounds', 'photos'].flatMap((k) => catalog[k].filter((x) => !mood || x.mood === mood).map((x) => [k, x]));
   if (vibe === 'loud' && Math.random() < 0.6) setBg({ kind: 'colors', id: '', color: pick(Object.values(BOLDS)) });
-  else if (pool.length) { const [k, x] = pick(pool); setBg({ kind: k, id: x.id, color: k === 'simple' ? pick(Object.values(palette())) : PAPER_TINT }); }
+  else if (pool.length) {
+    const [k, x] = pick(pool);
+    setBg({ kind: k, id: x.id, color: k === 'simple' ? pick(Object.values(palette())) : PAPER_TINT });
+    if (x.q) useQuote({ q: x.q, by: 'leyzays' });   // a painting that has its own note brings it along
+  }
   else redraw();
 }
 $('#surprise').addEventListener('click', () => { count('surprise'); surprise(); });
