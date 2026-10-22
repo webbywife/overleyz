@@ -331,7 +331,7 @@ const capKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 function loadCaps() {
   if (CAPS) return;
   CAPS = {};
-  fetch('assets/captions.json').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
+  fetch('assets/captions.json?v=20261023b').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
 }
 function captionText() {
   const words = state.text.split(/\n|\s*\/\s*/).map((s) => s.trim()).filter(Boolean).join(' ');
@@ -994,7 +994,7 @@ document.querySelectorAll('#vibe button').forEach((b) => b.addEventListener('cli
   restore();
   setVibe(vibe, false);
   if (vibe === 'loud' && !FONTS[state.font]?.shout) loudPost();   // first visit, or a design saved in Soft
-  catalog = await (await fetch('assets/catalog.json')).json();
+  catalog = await (await fetch('assets/catalog.json?v=20261023b')).json();
   const hash = new URLSearchParams(location.hash.slice(1)).get('n');
   visit(hash ? 'note' : 'studio');
   if (hash) {

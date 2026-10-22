@@ -104,9 +104,8 @@ def simple():
         if num in lines:
             item["q"] = lines[num]   # the note that was written for this still life
         out.append(item)
-    for name, (_, m, note) in local_art().items():
-        out.append({"id": f"li-{name}", "theme": name.replace("-", " "), "mood": m, "q": note})
-    return out
+    new = [{"id": f"li-{name}", "theme": name.replace("-", " "), "mood": m, "q": note} for name, (_, m, note) in local_art().items()]
+    return new + out   # the newer Draw Things paintings lead the picker
 
 
 def local_art():
