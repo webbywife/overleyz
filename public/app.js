@@ -337,7 +337,7 @@ const capKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 function loadCaps() {
   if (CAPS) return;
   CAPS = {};
-  fetch('assets/captions.json?v=20261023d').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
+  fetch('assets/captions.json?v=20261030a').then((r) => r.json()).then((j) => { CAPS = j; syncCaption(); }).catch(() => {});
 }
 function captionText() {
   const words = state.text.split(/\n|\s*\/\s*/).map((s) => s.trim()).filter(Boolean).join(' ');

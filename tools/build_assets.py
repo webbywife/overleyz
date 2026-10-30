@@ -272,13 +272,12 @@ def fonts():
 
 
 def captions():
-    """The original leyzays Instagram caption (story + question) for each note, keyed by the note's letters only."""
+    """Each leyzays note's reflection + question (plain text, same as the leyzays share caption), keyed by the note's letters only."""
     posts = json.loads((HOME / "leyzays/database/data/posts.json").read_text())
     key = lambda q: "".join(ch for ch in q.lower() if ch.isalnum())
     out = {}
     for p in posts:
-        body = "\n".join(ln for ln in p.get("instagram_caption", "").splitlines() if ln.strip() and not ln.strip().startswith("#"))
-        body = body.split("\n", 1)[1].strip() if "\n" in body else ""   # first line repeats the note; keep the story + question
+        body = "\n\n".join(x.strip() for x in (p.get("reflection"), p.get("question")) if x and x.strip())
         if body:
             out[key(p["quote"])] = body
     (OUT / "captions.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
